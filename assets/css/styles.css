@@ -1,0 +1,32 @@
+/* Fondo general */
+body {
+    background: #4e3d7a !important;
+    color: white;
+}
+
+/* Navbar negro */
+.navbar-dark-custom {
+    background: #0e0d0f !important;
+}
+
+/* Tarjeta del login */
+.login-card {
+    background: #6b5aa0;
+    border-radius: 18px;
+    padding: 30px;
+    width: 330px;
+}
+
+/* Imagen del index */
+.landing-img {
+    border-radius: 10px;
+}
+
+/* Botón azul */
+.btn-auth {
+    background: #2a72ff;
+    color: white;
+}
+.btn-auth:hover {
+    background: #3c84ff;
+}
