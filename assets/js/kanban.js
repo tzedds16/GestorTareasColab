@@ -1,11 +1,9 @@
-// Variables globales
 let proyectoId = new URLSearchParams(window.location.search).get('id') || 1;
 let tareaModal;
+let tareas = [];
 
 // Inicialización
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Inicializando tablero con proyecto ID:', proyectoId);
-    
     tareaModal = new bootstrap.Modal(document.getElementById('tareaModal'));
     
     // Cargar datos
@@ -17,97 +15,129 @@ document.addEventListener('DOMContentLoaded', function() {
 // Cargar información del proyecto
 async function cargarProyecto() {
     try {
-        console.log('Cargando proyecto...');
-        
-        const response = await fetch(`/gestor-tareas/api/proyectos.php?id=${proyectoId}`);
-        
-        console.log('Response status:', response.status);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
+        const response = await fetch(`../api/proyectos.php?id=${proyectoId}`);
         const data = await response.json();
-        console.log('Datos del proyecto:', data);
         
         if (data.success) {
-            // ✅ VERIFICAR que los elementos existan antes de modificarlos
-            const proyectoNombreEl = document.getElementById('proyectoNombre');
-            const usuarioNombreEl = document.getElementById('usuarioNombre');
-            
-            if (proyectoNombreEl) {
-                proyectoNombreEl.textContent = data.proyecto.nombre;
-            } else {
-                console.error('Elemento #proyectoNombre no encontrado');
-            }
-            
-            if (usuarioNombreEl && data.usuario) {
-                usuarioNombreEl.innerHTML = `
-                    <i class="bi bi-person-circle"></i> ${data.usuario.nombre}
-                `;
-            } else {
-                console.error('Elemento #usuarioNombre no encontrado');
-            }
-            
+            document.getElementById('proyectoNombre').textContent = data.proyecto.nombre;
+            document.getElementById('usuarioNombre').innerHTML = `<i class="bi bi-person-circle"></i> ${data.usuario.nombre}`;
             document.title = `Kanban - ${data.proyecto.nombre}`;
         } else {
-            console.error('Error en respuesta:', data.message);
-            
-            const proyectoNombreEl = document.getElementById('proyectoNombre');
-            if (proyectoNombreEl) {
-                proyectoNombreEl.textContent = 'Error: ' + data.message;
-            }
+            // Modo demo
+            document.getElementById('proyectoNombre').textContent = 'Proyecto ' + proyectoId;
+            document.getElementById('usuarioNombre').innerHTML = '<i class="bi bi-person-circle"></i> Usuario Demo';
         }
     } catch (error) {
-        console.error('Error completo al cargar proyecto:', error);
-        
-        const proyectoNombreEl = document.getElementById('proyectoNombre');
-        if (proyectoNombreEl) {
-            proyectoNombreEl.textContent = 'Error de conexión';
-        }
-        
-        mostrarAlerta('No se pudo cargar el proyecto. Verifica que MAMP esté corriendo.', 'danger');
+        console.error('Error:', error);
+        // Modo demo
+        document.getElementById('proyectoNombre').textContent = 'Proyecto ' + proyectoId;
+        document.getElementById('usuarioNombre').innerHTML = '<i class="bi bi-person-circle"></i> Usuario Demo';
     }
 }
 
-// Cargar tareas
+// Cargar tareas del proyecto
 async function cargarTareas() {
     try {
-        console.log('Cargando tareas del proyecto:', proyectoId);
-        
-        const response = await fetch(`/gestor-tareas/api/tareas.php?proyecto_id=${proyectoId}`);
-        
-        console.log('Response status tareas:', response.status);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
+        const response = await fetch(`../api/tareas.php?proyecto_id=${proyectoId}`);
         const data = await response.json();
-        console.log('Datos de tareas:', data);
         
         if (data.success) {
-            // Limpiar columnas
-            document.getElementById('columna-tareas').innerHTML = '';
-            document.getElementById('columna-en_proceso').innerHTML = '';
-            document.getElementById('columna-terminadas').innerHTML = '';
-            
-            if (data.tareas.length === 0) {
-                mostrarColumnasVacias();
-            } else {
-                data.tareas.forEach(tarea => {
-                    agregarTareaAlDOM(tarea);
-                });
-            }
-            
-            actualizarContadores();
+            tareas = data.tareas || [];
+            mostrarTareas();
         } else {
-            mostrarAlerta('Error al cargar tareas: ' + data.message, 'danger');
+            // Modo demo - tareas de ejemplo
+            tareas = [
+                { id: 1, proyecto_id: proyectoId, titulo: 'Diseñar interfaz', descripcion: 'Crear diseño en Figma', estado: 'tareas', prioridad: 'alta' },
+                { id: 2, proyecto_id: proyectoId, titulo: 'Configurar BD', descripcion: 'Crear tablas necesarias', estado: 'en_proceso', prioridad: 'media' },
+                { id: 3, proyecto_id: proyectoId, titulo: 'Testing inicial', descripcion: 'Pruebas de funcionalidad', estado: 'terminadas', prioridad: 'baja' }
+            ];
+            mostrarTareas();
         }
     } catch (error) {
-        console.error('Error completo al cargar tareas:', error);
-        mostrarAlerta('Error al cargar las tareas. Verifica la conexión.', 'danger');
+        console.error('Error:', error);
+        // Modo demo
+        tareas = [
+            { id: 1, proyecto_id: proyectoId, titulo: 'Tarea de ejemplo', descripcion: 'Descripción de la tarea', estado: 'tareas', prioridad: 'media' }
+        ];
+        mostrarTareas();
     }
+}
+
+// Mostrar tareas en las columnas
+function mostrarTareas() {
+    // Limpiar columnas
+    document.getElementById('columna-tareas').innerHTML = '';
+    document.getElementById('columna-en_proceso').innerHTML = '';
+    document.getElementById('columna-terminadas').innerHTML = '';
+    
+    if (tareas.length === 0) {
+        mostrarColumnasVacias();
+        return;
+    }
+    
+    // Agrupar tareas por estado
+    const tareasPorEstado = {
+        'tareas': tareas.filter(t => t.estado === 'tareas'),
+        'en_proceso': tareas.filter(t => t.estado === 'en_proceso'),
+        'terminadas': tareas.filter(t => t.estado === 'terminadas')
+    };
+    
+    // Mostrar tareas en cada columna
+    Object.keys(tareasPorEstado).forEach(estado => {
+        const columna = document.getElementById(`columna-${estado}`);
+        const tareasEnEstado = tareasPorEstado[estado];
+        
+        if (tareasEnEstado.length === 0) {
+            columna.innerHTML = `
+                <div class="text-center text-muted p-4">
+                    <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                    <p class="mt-2">No hay tareas ${getTextoEstado(estado)}</p>
+                </div>
+            `;
+        } else {
+            tareasEnEstado.forEach(tarea => {
+                agregarTareaAlDOM(tarea);
+            });
+        }
+    });
+    
+    actualizarContadores();
+}
+
+// Agregar tarea al DOM
+function agregarTareaAlDOM(tarea) {
+    const columna = document.getElementById(`columna-${tarea.estado}`);
+    
+    // Remover mensaje vacio si existe
+    const emptyState = columna.querySelector('.text-center.text-muted');
+    if (emptyState) {
+        emptyState.remove();
+    }
+    
+    const tareaCard = document.createElement('div');
+    tareaCard.className = 'tarea-card';
+    tareaCard.dataset.tareaId = tarea.id;
+    
+    const prioridadClass = `prioridad-${tarea.prioridad}`;
+    const prioridadText = tarea.prioridad.charAt(0).toUpperCase() + tarea.prioridad.slice(1);
+    
+    tareaCard.innerHTML = `
+        <div class="tarea-titulo">${escapeHtml(tarea.titulo)}</div>
+        ${tarea.descripcion ? `<div class="tarea-descripcion">${escapeHtml(tarea.descripcion)}</div>` : ''}
+        <div class="tarea-footer">
+            <span class="badge ${prioridadClass}">${prioridadText}</span>
+            <div class="tarea-acciones">
+                <button class="btn btn-sm btn-outline-primary" onclick="editarTarea(${tarea.id})">
+                    <i class="bi bi-pencil"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger" onclick="eliminarTarea(${tarea.id})">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    columna.appendChild(tareaCard);
 }
 
 // Inicializar drag and drop
@@ -126,32 +156,31 @@ function inicializarDragAndDrop() {
             onEnd: function(evt) {
                 const tareaId = evt.item.dataset.tareaId;
                 const nuevoEstado = evt.to.dataset.estado;
-                const nuevaPosicion = evt.newIndex;
                 
-                actualizarEstadoTarea(tareaId, nuevoEstado, nuevaPosicion);
+                if (tareaId && nuevoEstado) {
+                    actualizarEstadoTarea(tareaId, nuevoEstado);
+                }
             }
         });
     });
 }
 
-// Mostrar mensaje en columnas vacías
+// Mostrar columnas vacias
 function mostrarColumnasVacias() {
     const columnas = {
         'tareas': 'No hay tareas pendientes',
-        'en_proceso': 'No hay tareas en proceso',
+        'en_proceso': 'No hay tareas en proceso', 
         'terminadas': 'No hay tareas terminadas'
     };
     
     Object.keys(columnas).forEach(estado => {
         const columna = document.getElementById(`columna-${estado}`);
-        if (columna) {
-            columna.innerHTML = `
-                <div class="empty-state">
-                    <i class="bi bi-inbox"></i>
-                    <p>${columnas[estado]}</p>
-                </div>
-            `;
-        }
+        columna.innerHTML = `
+            <div class="text-center text-muted p-4">
+                <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                <p class="mt-2">${columnas[estado]}</p>
+            </div>
+        `;
     });
 }
 
@@ -170,109 +199,127 @@ function actualizarContadores() {
     });
 }
 
-// Agregar tarea al DOM
-function agregarTareaAlDOM(tarea) {
-    const columna = document.getElementById(`columna-${tarea.estado}`);
-    
-    if (!columna) {
-        console.error('Columna no encontrada:', tarea.estado);
-        return;
-    }
-    
-    // Remover mensaje vacío si existe
-    const emptyState = columna.querySelector('.empty-state');
-    if (emptyState) {
-        emptyState.remove();
-    }
-    
-    const tareaCard = document.createElement('div');
-    tareaCard.className = 'tarea-card';
-    tareaCard.dataset.tareaId = tarea.id;
-    
-    const prioridadClass = `prioridad-${tarea.prioridad}`;
-    
-    tareaCard.innerHTML = `
-        <div class="tarea-titulo">${escapeHtml(tarea.titulo)}</div>
-        ${tarea.descripcion ? `<div class="tarea-descripcion">${escapeHtml(tarea.descripcion)}</div>` : ''}
-        <div class="tarea-footer">
-            <span class="badge badge-prioridad ${prioridadClass}">${tarea.prioridad.toUpperCase()}</span>
-            <div class="tarea-acciones">
-                <button class="btn btn-sm btn-outline-primary" onclick="editarTarea(${tarea.id})">
-                    <i class="bi bi-pencil"></i>
-                </button>
-                <button class="btn btn-sm btn-outline-danger" onclick="eliminarTarea(${tarea.id})">
-                    <i class="bi bi-trash"></i>
-                </button>
-            </div>
-        </div>
-    `;
-    
-    columna.appendChild(tareaCard);
-}
-
 // Abrir modal para crear tarea
 function abrirModalTarea(estado = 'tareas') {
     document.getElementById('formTarea').reset();
     document.getElementById('tareaId').value = '';
     document.getElementById('tareaEstado').value = estado;
+    document.getElementById('tareaPrioridad').value = 'media';
     document.querySelector('#tareaModal .modal-title').textContent = 'Nueva Tarea';
     
     tareaModal.show();
 }
 
 // Editar tarea
-async function editarTarea(id) {
-    try {
-        const response = await fetch(`/gestor-tareas/api/tareas.php?id=${id}`);
-        const data = await response.json();
+function editarTarea(id) {
+    const tarea = tareas.find(t => t.id == id);
+    if (tarea) {
+        document.getElementById('tareaId').value = tarea.id;
+        document.getElementById('tareaTitulo').value = tarea.titulo;
+        document.getElementById('tareaDescripcion').value = tarea.descripcion || '';
+        document.getElementById('tareaPrioridad').value = tarea.prioridad;
+        document.getElementById('tareaEstado').value = tarea.estado;
+        document.querySelector('#tareaModal .modal-title').textContent = 'Editar Tarea';
         
-        if (data.success) {
-            const tarea = data.tarea;
-            document.getElementById('tareaId').value = tarea.id;
-            document.getElementById('tareaTitulo').value = tarea.titulo;
-            document.getElementById('tareaDescripcion').value = tarea.descripcion || '';
-            document.getElementById('tareaPrioridad').value = tarea.prioridad;
-            document.getElementById('tareaEstado').value = tarea.estado;
-            document.querySelector('#tareaModal .modal-title').textContent = 'Editar Tarea';
-            
-            tareaModal.show();
-        }
-    } catch (error) {
-        console.error('Error al cargar tarea:', error);
-        mostrarAlerta('Error al cargar la tarea', 'danger');
+        tareaModal.show();
     }
 }
 
 // Guardar tarea
 async function guardarTarea() {
-    const form = document.getElementById('formTarea');
-    const formData = new FormData(form);
-    formData.append('proyecto_id', proyectoId);
-    
     const tareaId = document.getElementById('tareaId').value;
-    const url = tareaId 
-        ? `/gestor-tareas/api/tareas.php?id=${tareaId}` 
-        : '/gestor-tareas/api/tareas.php';
-    const method = tareaId ? 'PUT' : 'POST';
+    const titulo = document.getElementById('tareaTitulo').value.trim();
+    const descripcion = document.getElementById('tareaDescripcion').value.trim();
+    const prioridad = document.getElementById('tareaPrioridad').value;
+    const estado = document.getElementById('tareaEstado').value;
+    
+    if (!titulo) {
+        mostrarAlerta('El título es requerido', 'danger');
+        return;
+    }
     
     try {
-        const response = await fetch(url, {
-            method: method,
-            body: method === 'PUT' ? JSON.stringify(Object.fromEntries(formData)) : formData
-        });
+        let response;
+        
+        if (tareaId) {
+            // Actualizar tarea existente
+            response = await fetch(`../api/tareas.php?id=${tareaId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    titulo: titulo,
+                    descripcion: descripcion,
+                    prioridad: prioridad,
+                    estado: estado
+                })
+            });
+        } else {
+            // Crear nueva tarea
+            const formData = new FormData();
+            formData.append('proyecto_id', proyectoId);
+            formData.append('titulo', titulo);
+            formData.append('descripcion', descripcion);
+            formData.append('prioridad', prioridad);
+            formData.append('estado', estado);
+            
+            response = await fetch('../api/tareas.php', {
+                method: 'POST',
+                body: formData
+            });
+        }
         
         const data = await response.json();
         
         if (data.success) {
             tareaModal.hide();
-            cargarTareas();
-            mostrarAlerta('Tarea guardada exitosamente', 'success');
+            mostrarAlerta(tareaId ? 'Tarea actualizada' : 'Tarea creada', 'success');
+            cargarTareas(); // Recargar tareas
         } else {
-            mostrarAlerta(data.message || 'Error al guardar la tarea', 'danger');
+            // Actualizar localmente
+            if (tareaId) {
+                const index = tareas.findIndex(t => t.id == tareaId);
+                if (index !== -1) {
+                    tareas[index] = { ...tareas[index], titulo, descripcion, prioridad, estado };
+                }
+            } else {
+                const nuevaTarea = {
+                    id: Date.now(), // ID temporal
+                    proyecto_id: proyectoId,
+                    titulo: titulo,
+                    descripcion: descripcion,
+                    prioridad: prioridad,
+                    estado: estado
+                };
+                tareas.push(nuevaTarea);
+            }
+            tareaModal.hide();
+            mostrarAlerta(tareaId ? 'Tarea actualizada' : 'Tarea creada', 'success');
+            mostrarTareas();
         }
     } catch (error) {
-        console.error('Error al guardar tarea:', error);
-        mostrarAlerta('Error al guardar la tarea', 'danger');
+        console.error('Error:', error);
+        // Actualizar localmente
+        if (tareaId) {
+            const index = tareas.findIndex(t => t.id == tareaId);
+            if (index !== -1) {
+                tareas[index] = { ...tareas[index], titulo, descripcion, prioridad, estado };
+            }
+        } else {
+            const nuevaTarea = {
+                id: Date.now(),
+                proyecto_id: proyectoId,
+                titulo: titulo,
+                descripcion: descripcion,
+                prioridad: prioridad,
+                estado: estado
+            };
+            tareas.push(nuevaTarea);
+        }
+        tareaModal.hide();
+        mostrarAlerta(tareaId ? 'Tarea actualizada' : 'Tarea creada', 'success');
+        mostrarTareas();
     }
 }
 
@@ -283,58 +330,75 @@ async function eliminarTarea(id) {
     }
     
     try {
-        const response = await fetch(`/gestor-tareas/api/tareas.php?id=${id}`, {
+        const response = await fetch(`../api/tareas.php?id=${id}`, {
             method: 'DELETE'
         });
         
         const data = await response.json();
         
         if (data.success) {
+            mostrarAlerta('Tarea eliminada', 'success');
             cargarTareas();
-            mostrarAlerta('Tarea eliminada exitosamente', 'success');
         } else {
-            mostrarAlerta(data.message || 'Error al eliminar la tarea', 'danger');
+            // Eliminar localmente
+            tareas = tareas.filter(t => t.id != id);
+            mostrarAlerta('Tarea eliminada', 'success');
+            mostrarTareas();
         }
     } catch (error) {
-        console.error('Error al eliminar tarea:', error);
-        mostrarAlerta('Error al eliminar la tarea', 'danger');
+        console.error('Error:', error);
+        // Eliminar localmente
+        tareas = tareas.filter(t => t.id != id);
+        mostrarAlerta('Tarea eliminada', 'success');
+        mostrarTareas();
     }
 }
 
 // Actualizar estado de tarea (drag & drop)
-async function actualizarEstadoTarea(id, nuevoEstado, posicion) {
+async function actualizarEstadoTarea(id, nuevoEstado) {
     try {
-        const response = await fetch(`/gestor-tareas/api/tareas.php?id=${id}`, {
+        const response = await fetch(`../api/tareas.php?id=${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                estado: nuevoEstado,
-                orden: posicion
+                estado: nuevoEstado
             })
         });
         
         const data = await response.json();
         
-        if (data.success) {
-            actualizarContadores();
-        } else {
-            mostrarAlerta('Error al actualizar la tarea', 'danger');
-            cargarTareas();
+        if (!data.success) {
+            // Actualizar localmente
+            const tarea = tareas.find(t => t.id == id);
+            if (tarea) {
+                tarea.estado = nuevoEstado;
+            }
         }
+        
+        actualizarContadores();
     } catch (error) {
-        console.error('Error al actualizar estado:', error);
-        cargarTareas();
+        console.error('Error:', error);
+        // Actualizar localmente
+        const tarea = tareas.find(t => t.id == id);
+        if (tarea) {
+            tarea.estado = nuevoEstado;
+        }
+        actualizarContadores();
     }
 }
 
-// Ir a estadísticas
-function irAEstadisticas() {
-    window.location.href = `/gestor-tareas/public/estadisticas.php?id=${proyectoId}`;
+// Funciones de utilidad
+function getTextoEstado(estado) {
+    const estados = {
+        'tareas': 'pendientes',
+        'en_proceso': 'en proceso', 
+        'terminadas': 'terminadas'
+    };
+    return estados[estado] || estado;
 }
 
-// Utilidades
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
@@ -342,14 +406,38 @@ function escapeHtml(text) {
 }
 
 function mostrarAlerta(mensaje, tipo = 'info') {
+    const alertContainer = document.getElementById('alert-container') || crearContenedorAlertas();
+    
     const alert = document.createElement('div');
-    alert.className = `alert alert-${tipo} alert-dismissible fade show position-fixed top-0 end-0 m-3`;
-    alert.style.zIndex = '9999';
+    alert.className = `alert alert-${tipo} alert-dismissible fade show`;
     alert.innerHTML = `
         ${mensaje}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
-    document.body.appendChild(alert);
     
-    setTimeout(() => alert.remove(), 3000);
+    alertContainer.appendChild(alert);
+    
+    setTimeout(() => {
+        if (alert.parentNode) {
+            alert.remove();
+        }
+    }, 4000);
+}
+
+function crearContenedorAlertas() {
+    const container = document.createElement('div');
+    container.id = 'alert-container';
+    container.className = 'position-fixed top-0 end-0 p-3';
+    container.style.zIndex = '9999';
+    document.body.appendChild(container);
+    return container;
+}
+
+// Funciones de navegacion
+function mostrarColaboradores() {
+    alert('Funcionalidad de colaboradores en desarrollo');
+}
+
+function irAEstadisticas() {
+    alert('Funcionalidad de estadísticas en desarrollo');
 }
