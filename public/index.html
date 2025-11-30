@@ -6,10 +6,10 @@
     <title>KANBAN - Inicio</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/styles.css">
 
 </head>
-<body class=" text-white">
+<body class="kanban-bg text-white"> <!-- Agregar clase kanban-bg -->
 
 <nav class="navbar navbar-dark bg-black px-3">
     <span class="navbar-brand">KANBAN</span>
@@ -19,12 +19,43 @@
 <div class="container py-5">
     <div class="row align-items-center">
         <div class="col-md-6">
-            <h1>Organiza todas tus tareas</h1>
-            <p>Con KANBAN alcanza de una manera más eficiente tus metas.</p>
+            <h1 class="display-5 fw-bold">Organiza todas tus tareas</h1>
+            <p class="lead">Con KANBAN alcanza de una manera más eficiente tus metas.</p>
+            <div class="mt-4">
+                <a href="auth.html" class="btn btn-primary btn-lg me-2">Comenzar Ahora</a>
+                <a href="#features" class="btn btn-outline-light btn-lg">Saber Más</a>
+            </div>
         </div>
 
         <div class="col-md-6">
-            <img src="assets/img/Kanban.webp" class="img-fluid rounded" alt="">
+            <img src="../assets/img/Kanban.webp" class="img-fluid rounded shadow" alt="Sistema Kanban">
+        </div>
+    </div>
+</div>
+
+<!-- Sección de características -->
+<div id="features" class="container py-5">
+    <div class="row text-center">
+        <div class="col-md-4 mb-4">
+            <div class="feature-card p-4 rounded">
+                <div class="feature-icon mb-3">📋</div>
+                <h4>Gestión Visual</h4>
+                <p>Organiza tus tareas en tableros Kanban intuitivos y fáciles de usar.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="feature-card p-4 rounded">
+                <div class="feature-icon mb-3">👥</div>
+                <h4>Colaboración</h4>
+                <p>Trabaja en equipo y comparte proyectos con tus compañeros.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="feature-card p-4 rounded">
+                <div class="feature-icon mb-3">⚡</div>
+                <h4>Productividad</h4>
+                <p>Aumenta tu eficiencia con seguimiento de progreso en tiempo real.</p>
+            </div>
         </div>
     </div>
 </div>
@@ -32,7 +63,6 @@
 <footer class="bg-black text-white mt-5 py-4">
     <div class="container">
         <div class="row">
-
             <div class="col-md-4 mb-3">
                 <h5 class="text-primary">KANBAN</h5>
                 <p class="small">
@@ -50,12 +80,12 @@
             <div class="col-md-4 mb-3">
                 <h6 class="text-uppercase">Enlaces</h6>
                 <ul class="list-unstyled small">
+                    <li><a href="auth.html" class="text-white text-decoration-none">Iniciar Sesión</a></li>
                     <li><a href="#" class="text-white text-decoration-none">Política de privacidad</a></li>
                     <li><a href="#" class="text-white text-decoration-none">Términos de uso</a></li>
                     <li><a href="#" class="text-white text-decoration-none">Soporte</a></li>
                 </ul>
             </div>
-
         </div>
 
         <hr class="border-secondary">
@@ -66,7 +96,5 @@
     </div>
 </footer>
 
-
 </body>
 </html>
-
