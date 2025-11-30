@@ -8,14 +8,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
     $confirmar_password = $_POST['confirmar_password'] ?? '';
     
-    // Validaciones
-    if (empty($nombre) || empty($email) || empty($password) || $password !== $confirmar_password) {
-        header('Location: auth.html?error=3');
+    // Validaciones básicas
+    if (empty($nombre) || empty($email) || empty($password) || empty($confirmar_password)) {
+        header('Location: auth.html?error=3&tab=register');
+        exit;
+    }
+    
+    if ($password !== $confirmar_password) {
+        header('Location: auth.html?error=3&tab=register');
         exit;
     }
     
     if (strlen($password) < 6) {
-        header('Location: auth.html?error=3');
+        header('Location: auth.html?error=3&tab=register');
+        exit;
+    }
+    
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        header('Location: auth.html?error=3&tab=register');
         exit;
     }
     
@@ -26,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
         
         if ($stmt->get_result()->num_rows > 0) {
-            header('Location: auth.html?error=4');
+            header('Location: auth.html?error=4&tab=register');
             exit;
         }
         
@@ -36,19 +46,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_param('sss', $nombre, $email, $password_hash);
         
         if ($stmt->execute()) {
-            $_SESSION['usuario_id'] = $conn->insert_id;
-            $_SESSION['nombre'] = $nombre;
-            $_SESSION['email'] = $email;
-            $_SESSION['rol'] = 'usuario';
-            
-            header('Location: proyectos.html');
+            // Registrarse fue exitoso, redirigir a login con mensaje de éxito
+            header('Location: auth.html?success=1&tab=login');
             exit;
         } else {
-            header('Location: auth.html?error=5');
+            header('Location: auth.html?error=5&tab=register');
             exit;
         }
     } catch (Exception $e) {
-        header('Location: auth.html?error=2');
+        header('Location: auth.html?error=2&tab=register');
         exit;
     }
 }

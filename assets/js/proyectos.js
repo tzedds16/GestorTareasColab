@@ -6,26 +6,9 @@ let proyectoModal;
 document.addEventListener('DOMContentLoaded', function() {
     proyectoModal = new bootstrap.Modal(document.getElementById('modalProyecto'));
     
-    // Cargar datos del usuario y proyectos
-    cargarUsuario();
+    // Cargar proyectos
     cargarProyectos();
 });
-
-// Cargar información del usuario
-function cargarUsuario() {
-    const userInfo = document.getElementById('userInfo');
-    
-    // En un sistema real, esto vendría de la sesión/API
-    const usuario = {
-        nombre: 'Usuario Demo',
-        email: 'demo@test.com'
-    };
-    
-    userInfo.innerHTML = `
-        <i class="bi bi-person-circle"></i> ${usuario.nombre}
-        <small class="d-block">${usuario.email}</small>
-    `;
-}
 
 // Cargar proyectos desde la API
 async function cargarProyectos() {
