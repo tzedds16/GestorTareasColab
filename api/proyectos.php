@@ -24,7 +24,7 @@ try {
                     FROM proyectos p 
                     LEFT JOIN usuarios u ON p.usuario_id = u.id 
                     WHERE p.id = ? AND (p.usuario_id = ? OR p.id IN (
-                        SELECT proyecto_id FROM proyecto_colaboradores WHERE usuario_id = ?
+                        SELECT proyecto_id FROM colaboradores WHERE usuario_id = ?
                     ))
                 ");
                 $stmt->bind_param('iii', $proyecto_id, $_SESSION['usuario_id'], $_SESSION['usuario_id']);
@@ -54,7 +54,7 @@ try {
                     FROM proyectos p 
                     LEFT JOIN usuarios u ON p.usuario_id = u.id 
                     WHERE p.usuario_id = ? OR p.id IN (
-                        SELECT proyecto_id FROM proyecto_colaboradores WHERE usuario_id = ?
+                        SELECT proyecto_id FROM colaboradores WHERE usuario_id = ?
                     )
                     ORDER BY p.fecha_creacion DESC
                 ");

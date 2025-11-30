@@ -20,18 +20,13 @@ async function cargarProyecto() {
         
         if (data.success) {
             document.getElementById('proyectoNombre').textContent = data.proyecto.nombre;
-            document.getElementById('usuarioNombre').innerHTML = `<i class="bi bi-person-circle"></i> ${data.usuario.nombre}`;
             document.title = `Kanban - ${data.proyecto.nombre}`;
         } else {
-            // Modo demo
             document.getElementById('proyectoNombre').textContent = 'Proyecto ' + proyectoId;
-            document.getElementById('usuarioNombre').innerHTML = '<i class="bi bi-person-circle"></i> Usuario Demo';
         }
     } catch (error) {
         console.error('Error:', error);
-        // Modo demo
         document.getElementById('proyectoNombre').textContent = 'Proyecto ' + proyectoId;
-        document.getElementById('usuarioNombre').innerHTML = '<i class="bi bi-person-circle"></i> Usuario Demo';
     }
 }
 

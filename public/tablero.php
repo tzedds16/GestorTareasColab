@@ -1,35 +1,18 @@
 <?php
-// session_start();
-// require_once '../config/database.php';
-
-// // Verificar autenticación
-// if (!isset($_SESSION['usuario_id'])) {
-//     header('Location: login.php');
-//     exit;
-// }
-
-// $proyecto_id = $_GET['id'] ?? null;
-// if (!$proyecto_id) {
-//     header('Location: index.php');
-//     exit;
-// }
-
-// // Obtener datos del proyecto
-// // ... tu lógica aquí
-// tablero.php - MODO PRUEBA
 session_start();
+require_once '../api/config/database.php';
 
-// Simular usuario autenticado (QUITAR EN PRODUCCIÓN)
+// Verificar autenticación
 if (!isset($_SESSION['usuario_id'])) {
-    $_SESSION['usuario_id'] = 1;
-    $_SESSION['nombre'] = 'Usuario Demo';
-    $_SESSION['email'] = 'demo@test.com';
-    $_SESSION['rol'] = 'usuario';
+    header('Location: auth.html');
+    exit;
 }
 
-require_once '../config/database.php';
-
-$proyecto_id = $_GET['id'] ?? 1; // Por defecto proyecto 1
+$proyecto_id = $_GET['id'] ?? null;
+if (!$proyecto_id) {
+    header('Location: proyectos.php');
+    exit;
+}
 ?>
 
 <!DOCTYPE html>
@@ -48,6 +31,7 @@ $proyecto_id = $_GET['id'] ?? 1; // Por defecto proyecto 1
         <div class="container-fluid">
             <span class="navbar-brand mb-0 h1">KANBAN</span>
             <div class="d-flex align-items-center">
+                <span class="text-light me-3" id="usuarioNombre"><?php echo htmlspecialchars($_SESSION['nombre']); ?></span>
                 <button class="btn btn-outline-light me-2" data-bs-toggle="modal" data-bs-target="#colaboradoresModal">
                     <i class="bi bi-people"></i> Colaboradores
                 </button>

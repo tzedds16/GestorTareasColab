@@ -3,55 +3,128 @@ header('Content-Type: application/json');
 require_once '../config/database.php';
 session_start();
 
-// Verificar autenticación (comentar temporalmente si no tienes login)
-// if (!isset($_SESSION['usuario_id'])) {
-//     http_response_code(401);
-//     echo json_encode(['success' => false, 'message' => 'No autenticado']);
-//     exit;
-// }
-
-// Usuario de prueba temporal
 if (!isset($_SESSION['usuario_id'])) {
-    $_SESSION['usuario_id'] = 1;
+    http_response_code(401);
+    echo json_encode(['success' => false, 'message' => 'No autenticado']);
+    exit;
 }
 
 $method = $_SERVER['REQUEST_METHOD'];
 $usuario_id = $_SESSION['usuario_id'];
 
-switch ($method) {
-    case 'GET':
-        if (isset($_GET['id'])) {
-            obtenerTarea($_GET['id'], $usuario_id);
-        } else if (isset($_GET['proyecto_id'])) {
-            listarTareas($_GET['proyecto_id'], $usuario_id);
-        }
-        break;
-        
-    case 'POST':
-        crearTarea($usuario_id);
-        break;
-        
-    case 'PUT':
-        $data = json_decode(file_get_contents('php://input'), true);
-        actualizarTarea($_GET['id'], $data, $usuario_id);
-        break;
-        
-    case 'DELETE':
-        eliminarTarea($_GET['id'], $usuario_id);
-        break;
-        
-    default:
-        http_response_code(405);
-        echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+try {
+    switch ($method) {
+        case 'GET':
+            if (isset($_GET['id'])) {
+                obtenerTarea($_GET['id'], $usuario_id);
+            } else if (isset($_GET['tablero_id'])) {
+                listarTareasPorTablero($_GET['tablero_id'], $usuario_id);
+            } else if (isset($_GET['proyecto_id'])) {
+                listarTareasPorProyecto($_GET['proyecto_id'], $usuario_id);
+            }
+            break;
+            
+        case 'POST':
+            crearTarea($usuario_id);
+            break;
+            
+        case 'PUT':
+            if (!isset($_GET['id'])) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'ID de tarea requerido']);
+                exit;
+            }
+            $data = json_decode(file_get_contents('php://input'), true);
+            actualizarTarea($_GET['id'], $data, $usuario_id);
+            break;
+            
+        case 'DELETE':
+            if (!isset($_GET['id'])) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'ID de tarea requerido']);
+                exit;
+            }
+            eliminarTarea($_GET['id'], $usuario_id);
+            break;
+            
+        default:
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+    }
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
 }
 
-function listarTareas($proyecto_id, $usuario_id) {
+function verificarAccesoTablero($tablero_id, $usuario_id) {
     global $conn;
     
     $stmt = $conn->prepare("
-        SELECT * FROM tareas 
-        WHERE proyecto_id = ? 
-        ORDER BY orden ASC, fecha_creacion DESC
+        SELECT t.id FROM tableros t
+        JOIN proyectos p ON t.proyecto_id = p.id
+        WHERE t.id = ? AND (p.usuario_id = ? OR p.id IN (
+            SELECT proyecto_id FROM colaboradores WHERE usuario_id = ?
+        ))
+    ");
+    $stmt->bind_param('iii', $tablero_id, $usuario_id, $usuario_id);
+    $stmt->execute();
+    return $stmt->get_result()->num_rows > 0;
+}
+
+function listarTareasPorTablero($tablero_id, $usuario_id) {
+    global $conn;
+    
+    if (!verificarAccesoTablero($tablero_id, $usuario_id)) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'No tienes acceso a este tablero']);
+        return;
+    }
+    
+    $stmt = $conn->prepare("
+        SELECT t.*, u.nombre as asignado_nombre
+        FROM tareas t
+        LEFT JOIN usuarios u ON t.asignado_a = u.id
+        WHERE t.tablero_id = ?
+        ORDER BY t.posicion ASC, t.fecha_creacion DESC
+    ");
+    $stmt->bind_param('i', $tablero_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    $tareas = [];
+    while ($row = $result->fetch_assoc()) {
+        $tareas[] = $row;
+    }
+    
+    echo json_encode(['success' => true, 'tareas' => $tareas]);
+}
+
+function listarTareasPorProyecto($proyecto_id, $usuario_id) {
+    global $conn;
+    
+    // Verificar acceso al proyecto
+    $stmt = $conn->prepare("
+        SELECT id FROM proyectos
+        WHERE id = ? AND (usuario_id = ? OR id IN (
+            SELECT proyecto_id FROM colaboradores WHERE usuario_id = ?
+        ))
+    ");
+    $stmt->bind_param('iii', $proyecto_id, $usuario_id, $usuario_id);
+    $stmt->execute();
+    
+    if ($stmt->get_result()->num_rows === 0) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'No tienes acceso a este proyecto']);
+        return;
+    }
+    
+    $stmt = $conn->prepare("
+        SELECT t.*, u.nombre as asignado_nombre, tb.nombre as tablero_nombre
+        FROM tareas t
+        LEFT JOIN usuarios u ON t.asignado_a = u.id
+        JOIN tableros tb ON t.tablero_id = tb.id
+        WHERE tb.proyecto_id = ?
+        ORDER BY tb.id, t.posicion ASC, t.fecha_creacion DESC
     ");
     $stmt->bind_param('i', $proyecto_id);
     $stmt->execute();
@@ -68,12 +141,24 @@ function listarTareas($proyecto_id, $usuario_id) {
 function obtenerTarea($id, $usuario_id) {
     global $conn;
     
-    $stmt = $conn->prepare("SELECT * FROM tareas WHERE id = ?");
+    $stmt = $conn->prepare("
+        SELECT t.*, u.nombre as asignado_nombre
+        FROM tareas t
+        LEFT JOIN usuarios u ON t.asignado_a = u.id
+        WHERE t.id = ?
+    ");
     $stmt->bind_param('i', $id);
     $stmt->execute();
     $result = $stmt->get_result();
     
     if ($tarea = $result->fetch_assoc()) {
+        // Verificar que el usuario tenga acceso
+        if (!verificarAccesoTablero($tarea['tablero_id'], $usuario_id)) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'No tienes acceso a esta tarea']);
+            return;
+        }
+        
         echo json_encode(['success' => true, 'tarea' => $tarea]);
     } else {
         http_response_code(404);
@@ -84,29 +169,37 @@ function obtenerTarea($id, $usuario_id) {
 function crearTarea($usuario_id) {
     global $conn;
     
-    $proyecto_id = $_POST['proyecto_id'] ?? null;
-    $titulo = trim($_POST['titulo'] ?? '');
-    $descripcion = trim($_POST['descripcion'] ?? '');
-    $estado = $_POST['estado'] ?? 'tareas';
-    $prioridad = $_POST['prioridad'] ?? 'media';
+    $data = json_decode(file_get_contents('php://input'), true);
     
-    if (!$proyecto_id || !$titulo) {
+    $tablero_id = $data['tablero_id'] ?? null;
+    $titulo = trim($data['titulo'] ?? '');
+    $descripcion = trim($data['descripcion'] ?? '');
+    $prioridad = $data['prioridad'] ?? 'media';
+    
+    if (!$tablero_id || !$titulo) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Datos incompletos']);
+        echo json_encode(['success' => false, 'message' => 'Tablero y título son requeridos']);
+        return;
+    }
+    
+    // Verificar acceso al tablero
+    if (!verificarAccesoTablero($tablero_id, $usuario_id)) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'No tienes acceso a este tablero']);
         return;
     }
     
     $stmt = $conn->prepare("
-        INSERT INTO tareas (proyecto_id, titulo, descripcion, estado, prioridad)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO tareas (tablero_id, titulo, descripcion, prioridad)
+        VALUES (?, ?, ?, ?)
     ");
-    $stmt->bind_param('issss', $proyecto_id, $titulo, $descripcion, $estado, $prioridad);
+    $stmt->bind_param('isss', $tablero_id, $titulo, $descripcion, $prioridad);
     
     if ($stmt->execute()) {
         echo json_encode([
             'success' => true,
             'message' => 'Tarea creada',
-            'id' => $conn->insert_id
+            'tarea_id' => $conn->insert_id
         ]);
     } else {
         http_response_code(500);
@@ -116,6 +209,24 @@ function crearTarea($usuario_id) {
 
 function actualizarTarea($id, $data, $usuario_id) {
     global $conn;
+    
+    // Obtener tarea y verificar acceso
+    $stmt = $conn->prepare("SELECT tablero_id FROM tareas WHERE id = ?");
+    $stmt->bind_param('i', $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if (!$tarea = $result->fetch_assoc()) {
+        http_response_code(404);
+        echo json_encode(['success' => false, 'message' => 'Tarea no encontrada']);
+        return;
+    }
+    
+    if (!verificarAccesoTablero($tarea['tablero_id'], $usuario_id)) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'No tienes acceso a esta tarea']);
+        return;
+    }
     
     $campos = [];
     $tipos = '';
@@ -141,10 +252,20 @@ function actualizarTarea($id, $data, $usuario_id) {
         $tipos .= 's';
         $valores[] = $data['prioridad'];
     }
-    if (isset($data['orden'])) {
-        $campos[] = 'orden = ?';
+    if (isset($data['posicion'])) {
+        $campos[] = 'posicion = ?';
         $tipos .= 'i';
-        $valores[] = $data['orden'];
+        $valores[] = $data['posicion'];
+    }
+    if (isset($data['asignado_a'])) {
+        $campos[] = 'asignado_a = ?';
+        $tipos .= isset($data['asignado_a']) && $data['asignado_a'] ? 'i' : 's';
+        $valores[] = $data['asignado_a'] ?: null;
+    }
+    if (isset($data['fecha_vencimiento'])) {
+        $campos[] = 'fecha_vencimiento = ?';
+        $tipos .= 's';
+        $valores[] = $data['fecha_vencimiento'] ?: null;
     }
     
     if (empty($campos)) {
@@ -170,6 +291,24 @@ function actualizarTarea($id, $data, $usuario_id) {
 
 function eliminarTarea($id, $usuario_id) {
     global $conn;
+    
+    // Obtener tarea y verificar acceso
+    $stmt = $conn->prepare("SELECT tablero_id FROM tareas WHERE id = ?");
+    $stmt->bind_param('i', $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if (!$tarea = $result->fetch_assoc()) {
+        http_response_code(404);
+        echo json_encode(['success' => false, 'message' => 'Tarea no encontrada']);
+        return;
+    }
+    
+    if (!verificarAccesoTablero($tarea['tablero_id'], $usuario_id)) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'No tienes acceso a esta tarea']);
+        return;
+    }
     
     $stmt = $conn->prepare("DELETE FROM tareas WHERE id = ?");
     $stmt->bind_param('i', $id);
