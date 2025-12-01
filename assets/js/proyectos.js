@@ -6,9 +6,69 @@ let proyectoModal;
 document.addEventListener('DOMContentLoaded', function() {
     proyectoModal = new bootstrap.Modal(document.getElementById('modalProyecto'));
     
-    // Cargar proyectos
+    // Verificar autenticación y cargar datos
+    verificarAutenticacion();
+    cargarUsuario();
     cargarProyectos();
+    mostrarAlertaDeLlamadaLogin();
 });
+
+// Verificar si el usuario está autenticado
+async function verificarAutenticacion() {
+    try {
+        const response = await fetch('../api/check_auth.php');
+        const data = await response.json();
+        
+        if (!data.success) {
+            window.location.href = 'auth.html';
+        }
+    } catch (error) {
+        console.error('Error al verificar autenticación:', error);
+        window.location.href = 'auth.html';
+    }
+}
+
+// Cargar datos del usuario
+async function cargarUsuario() {
+    try {
+        const response = await fetch('../api/usuario.php');
+        const data = await response.json();
+        
+        if (data.success) {
+            const usuario = data.usuario;
+            document.getElementById('userInfo').textContent = usuario.nombre;
+        } else {
+            document.getElementById('userInfo').textContent = 'Usuario desconocido';
+        }
+    } catch (error) {
+        console.error('Error al cargar usuario:', error);
+        document.getElementById('userInfo').textContent = 'Error';
+    }
+}
+
+// Mostrar alerta si viene de login exitoso
+function mostrarAlertaDeLlamadaLogin() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('login_success')) {
+        const container = document.getElementById('mainAlertContainer');
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-success alert-dismissible fade show';
+        alertDiv.setAttribute('role', 'alert');
+        alertDiv.innerHTML = 'Inicio de sesión exitoso. ¡Bienvenido! <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+        container.appendChild(alertDiv);
+
+        if (window.history && window.history.replaceState) {
+            const url = new URL(window.location);
+            url.searchParams.delete('login_success');
+            window.history.replaceState({}, document.title, url.pathname + url.search);
+        }
+
+        setTimeout(() => {
+            const bsAlert = new bootstrap.Alert(alertDiv);
+            try { bsAlert.close(); } catch(e){}
+        }, 3500);
+    }
+}
 
 // Cargar proyectos desde la API
 async function cargarProyectos() {
@@ -24,12 +84,7 @@ async function cargarProyectos() {
         }
     } catch (error) {
         console.error('Error:', error);
-        // Modo demo - proyectos de ejemplo
-        proyectos = [
-            { id: 1, nombre: 'Proyecto 1', descripcion: 'Proyecto de ejemplo 1', color: '#6366f1' },
-            { id: 2, nombre: 'Proyecto 2', descripcion: 'Proyecto de ejemplo 2', color: '#10b981' }
-        ];
-        mostrarProyectos();
+        mostrarError('Error al conectar con el servidor. Intenta nuevamente.');
     }
 }
 
@@ -138,29 +193,61 @@ async function crearProyecto() {
         if (data.success) {
             proyectoModal.hide();
             mostrarMensaje('Proyecto creado exitosamente', 'success');
-            cargarProyectos(); // Recargar la lista
+            cargarProyectos(); // Recargar la lista desde BD
         } else {
             mostrarError(data.message || 'Error al crear proyecto');
         }
     } catch (error) {
         console.error('Error:', error);
-        // Modo demo - agregar proyecto localmente
-        const nuevoProyecto = {
-            id: proyectos.length + 1,
-            nombre: nombre,
-            descripcion: descripcion,
-            color: color
-        };
-        proyectos.push(nuevoProyecto);
-        proyectoModal.hide();
-        mostrarMensaje('Proyecto creado exitosamente', 'success');
-        mostrarProyectos();
+        mostrarError('Error al guardar el proyecto. Intenta nuevamente.');
     }
 }
 
 // Ir al tablero de un proyecto
-function irATablero(proyectoId) {
-    window.location.href = `tablero.html?id=${proyectoId}`;
+async function irATablero(proyectoId) {
+    try {
+        // Primero, obtener o crear el tablero para este proyecto
+        const response = await fetch(`../api/tableros.php?proyecto_id=${proyectoId}`);
+        const data = await response.json();
+        
+        if (data.success && data.tableros && data.tableros.length > 0) {
+            // Si existe al menos un tablero, ir al primero
+            window.location.href = `tablero.html?id=${data.tableros[0].id}`;
+        } else {
+            // Si no existe tablero, crear uno por defecto
+            crearTableroYNavegar(proyectoId);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('Error al acceder al proyecto. Intenta nuevamente.');
+    }
+}
+
+// Crear tablero por defecto y navegar
+async function crearTableroYNavegar(proyectoId) {
+    try {
+        const response = await fetch('../api/tableros.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                nombre: 'Kanban',
+                proyecto_id: proyectoId
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            window.location.href = `tablero.html?id=${data.tablero_id}`;
+        } else {
+            mostrarError('Error al crear tablero: ' + data.message);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('Error al crear tablero. Intenta nuevamente.');
+    }
 }
 
 // Utilidades

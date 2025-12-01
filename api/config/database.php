@@ -9,7 +9,7 @@ error_reporting(E_ALL);
 // Configuración MAMP
 // Ajusta según el resultado de test_diagnostico.php
 define('DB_HOST', '127.0.0.1'); // Prueba con 127.0.0.1 primero
-define('DB_PORT', 8889);         // 8889 en Mac, 3306 en Windows
+define('DB_PORT', 8889);         // 8889 en Mac Y Windows MAMP, 3306 en MySQL nativo
 define('DB_NAME', 'gestor_tareas');
 define('DB_USER', 'root');
 define('DB_PASS', 'root');       // Prueba con 'root' o '' (vacío)
