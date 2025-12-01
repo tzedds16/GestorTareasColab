@@ -4,7 +4,7 @@ require_once '../api/config/database.php';
 
 // Si ya está logueado, redirigir a proyectos
 if (isset($_SESSION['usuario_id'])) {
-    header('Location: proyectos.php');
+    header('Location: proyectos.html?login_success=1');
     exit;
 }
 
@@ -38,7 +38,7 @@ try {
         $_SESSION['rol'] = $usuario['rol'];
         
         // Redirigir a proyectos mostrando un popup de éxito
-        header('Location: proyectos.php?login_success=1');
+        header('Location: proyectos.html?login_success=1');
         exit;
     } else {
         // Email no existe o contraseña incorrecta

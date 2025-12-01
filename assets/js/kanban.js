@@ -1,4 +1,5 @@
-let proyectoId = new URLSearchParams(window.location.search).get('id') || 1;
+// tableroId se obtiene de la URL
+let tableroId = new URLSearchParams(window.location.search).get('id');
 let tareaModal;
 let tareas = [];
 
@@ -6,54 +7,91 @@ let tareas = [];
 document.addEventListener('DOMContentLoaded', function() {
     tareaModal = new bootstrap.Modal(document.getElementById('tareaModal'));
     
+    // Verificar que tenemos un tableroId
+    if (!tableroId) {
+        alert('Falta el ID del tablero');
+        window.location.href = 'proyectos.html';
+        return;
+    }
+    
     // Cargar datos
-    cargarProyecto();
+    verificarAutenticacion();
+    cargarUsuario();
+    cargarTablero();
     inicializarDragAndDrop();
     cargarTareas();
 });
 
-// Cargar información del proyecto
-async function cargarProyecto() {
+// Verificar autenticación
+async function verificarAutenticacion() {
     try {
-        const response = await fetch(`../api/proyectos.php?id=${proyectoId}`);
+        const response = await fetch('../api/check_auth.php');
         const data = await response.json();
         
-        if (data.success) {
-            document.getElementById('proyectoNombre').textContent = data.proyecto.nombre;
-            document.title = `Kanban - ${data.proyecto.nombre}`;
-        } else {
-            document.getElementById('proyectoNombre').textContent = 'Proyecto ' + proyectoId;
+        if (!data.success) {
+            window.location.href = 'auth.html';
         }
     } catch (error) {
-        console.error('Error:', error);
-        document.getElementById('proyectoNombre').textContent = 'Proyecto ' + proyectoId;
+        console.error('Error al verificar autenticación:', error);
+        window.location.href = 'auth.html';
     }
 }
 
-// Cargar tareas del proyecto
+// Cargar datos del usuario
+async function cargarUsuario() {
+    try {
+        const response = await fetch('../api/usuario.php');
+        const data = await response.json();
+        
+        if (data.success) {
+            const usuario = data.usuario;
+            document.getElementById('usuarioNombre').textContent = usuario.nombre;
+        } else {
+            document.getElementById('usuarioNombre').textContent = 'Usuario desconocido';
+        }
+    } catch (error) {
+        console.error('Error al cargar usuario:', error);
+        document.getElementById('usuarioNombre').textContent = 'Error';
+    }
+}
+
+// Cargar datos del tablero
+async function cargarTablero() {
+    try {
+        const response = await fetch(`../api/tablero.php?id=${tableroId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            const tablero = data.tablero;
+            document.getElementById('proyectoNombre').textContent = `${tablero.proyecto_nombre} - ${tablero.nombre}`;
+            document.title = `Kanban - ${tablero.nombre}`;
+        } else {
+            document.getElementById('proyectoNombre').textContent = 'Tablero no encontrado';
+        }
+    } catch (error) {
+        console.error('Error al cargar tablero:', error);
+        document.getElementById('proyectoNombre').textContent = 'Error al cargar tablero';
+    }
+}
+
+// Cargar tareas del tablero
 async function cargarTareas() {
     try {
-        const response = await fetch(`../api/tareas.php?proyecto_id=${proyectoId}`);
+        const response = await fetch(`../api/tareas.php?tablero_id=${tableroId}`);
         const data = await response.json();
         
         if (data.success) {
             tareas = data.tareas || [];
+            console.log('Tareas cargadas:', tareas); // Debug
             mostrarTareas();
         } else {
-            // Modo demo - tareas de ejemplo
-            tareas = [
-                { id: 1, proyecto_id: proyectoId, titulo: 'Diseñar interfaz', descripcion: 'Crear diseño en Figma', estado: 'tareas', prioridad: 'alta' },
-                { id: 2, proyecto_id: proyectoId, titulo: 'Configurar BD', descripcion: 'Crear tablas necesarias', estado: 'en_proceso', prioridad: 'media' },
-                { id: 3, proyecto_id: proyectoId, titulo: 'Testing inicial', descripcion: 'Pruebas de funcionalidad', estado: 'terminadas', prioridad: 'baja' }
-            ];
+            console.error('Error al cargar tareas:', data.message);
+            tareas = [];
             mostrarTareas();
         }
     } catch (error) {
         console.error('Error:', error);
-        // Modo demo
-        tareas = [
-            { id: 1, proyecto_id: proyectoId, titulo: 'Tarea de ejemplo', descripcion: 'Descripción de la tarea', estado: 'tareas', prioridad: 'media' }
-        ];
+        tareas = [];
         mostrarTareas();
     }
 }
@@ -252,16 +290,18 @@ async function guardarTarea() {
             });
         } else {
             // Crear nueva tarea
-            const formData = new FormData();
-            formData.append('proyecto_id', proyectoId);
-            formData.append('titulo', titulo);
-            formData.append('descripcion', descripcion);
-            formData.append('prioridad', prioridad);
-            formData.append('estado', estado);
-            
             response = await fetch('../api/tareas.php', {
                 method: 'POST',
-                body: formData
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    tablero_id: tableroId,
+                    titulo: titulo,
+                    descripcion: descripcion,
+                    prioridad: prioridad,
+                    estado: estado
+                })
             });
         }
         
@@ -270,51 +310,13 @@ async function guardarTarea() {
         if (data.success) {
             tareaModal.hide();
             mostrarAlerta(tareaId ? 'Tarea actualizada' : 'Tarea creada', 'success');
-            cargarTareas(); // Recargar tareas
+            cargarTareas(); // Recargar tareas desde BD
         } else {
-            // Actualizar localmente
-            if (tareaId) {
-                const index = tareas.findIndex(t => t.id == tareaId);
-                if (index !== -1) {
-                    tareas[index] = { ...tareas[index], titulo, descripcion, prioridad, estado };
-                }
-            } else {
-                const nuevaTarea = {
-                    id: Date.now(), // ID temporal
-                    proyecto_id: proyectoId,
-                    titulo: titulo,
-                    descripcion: descripcion,
-                    prioridad: prioridad,
-                    estado: estado
-                };
-                tareas.push(nuevaTarea);
-            }
-            tareaModal.hide();
-            mostrarAlerta(tareaId ? 'Tarea actualizada' : 'Tarea creada', 'success');
-            mostrarTareas();
+            mostrarAlerta(data.message || 'Error al guardar', 'danger');
         }
     } catch (error) {
         console.error('Error:', error);
-        // Actualizar localmente
-        if (tareaId) {
-            const index = tareas.findIndex(t => t.id == tareaId);
-            if (index !== -1) {
-                tareas[index] = { ...tareas[index], titulo, descripcion, prioridad, estado };
-            }
-        } else {
-            const nuevaTarea = {
-                id: Date.now(),
-                proyecto_id: proyectoId,
-                titulo: titulo,
-                descripcion: descripcion,
-                prioridad: prioridad,
-                estado: estado
-            };
-            tareas.push(nuevaTarea);
-        }
-        tareaModal.hide();
-        mostrarAlerta(tareaId ? 'Tarea actualizada' : 'Tarea creada', 'success');
-        mostrarTareas();
+        mostrarAlerta('Error al guardar la tarea', 'danger');
     }
 }
 

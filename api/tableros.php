@@ -1,6 +1,6 @@
 <?php
 header('Content-Type: application/json');
-require_once '../config/database.php';
+require_once './config/database.php';
 session_start();
 
 if (!isset($_SESSION['usuario_id'])) {
@@ -133,7 +133,6 @@ function crearTablero($usuario_id) {
     
     $proyecto_id = $data['proyecto_id'] ?? null;
     $nombre = trim($data['nombre'] ?? '');
-    $descripcion = trim($data['descripcion'] ?? '');
     
     if (!$proyecto_id || !$nombre) {
         http_response_code(400);
@@ -156,10 +155,10 @@ function crearTablero($usuario_id) {
     $posicion = ($result['max_pos'] ?? -1) + 1;
     
     $stmt = $conn->prepare("
-        INSERT INTO tableros (proyecto_id, nombre, descripcion, posicion)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO tableros (proyecto_id, nombre, posicion)
+        VALUES (?, ?, ?)
     ");
-    $stmt->bind_param('issi', $proyecto_id, $nombre, $descripcion, $posicion);
+    $stmt->bind_param('isi', $proyecto_id, $nombre, $posicion);
     
     if ($stmt->execute()) {
         echo json_encode([
@@ -202,11 +201,6 @@ function actualizarTablero($id, $data, $usuario_id) {
         $campos[] = 'nombre = ?';
         $tipos .= 's';
         $valores[] = trim($data['nombre']);
-    }
-    if (isset($data['descripcion'])) {
-        $campos[] = 'descripcion = ?';
-        $tipos .= 's';
-        $valores[] = trim($data['descripcion']);
     }
     if (isset($data['posicion'])) {
         $campos[] = 'posicion = ?';

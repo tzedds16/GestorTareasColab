@@ -12,15 +12,13 @@
     <!-- Header -->
     <nav class="navbar navbar-dark bg-dark">
         <div class="container-fluid">
-            <a href="proyectos.html" class="btn btn-outline-light btn-sm">
-                <i class="bi bi-arrow-left"></i> Volver a Proyectos
-            </a>
             <span class="navbar-brand mb-0 h1">KANBAN</span>
             <div class="d-flex align-items-center">
-                <span class="text-white me-3" id="usuarioNombre">
-                    <i class="bi bi-person-circle"></i> Cargando...
-                </span>
-                <button class="btn btn-outline-light me-2" onclick="mostrarColaboradores()">
+                <span class="text-light me-3" id="usuarioNombre">Cargando usuario...</span>
+                <a href="proyectos.html" class="btn btn-outline-light me-2">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+                <button class="btn btn-outline-light me-2" data-bs-toggle="modal" data-bs-target="#colaboradoresModal">
                     <i class="bi bi-people"></i> Colaboradores
                 </button>
                 <button class="btn btn-outline-light" onclick="irAEstadisticas()">
@@ -33,9 +31,9 @@
     <!-- Titulo del Proyecto -->
     <div class="container-fluid mt-3">
         <div class="d-flex justify-content-between align-items-center bg-primary text-white p-3 rounded">
-            <h4 class="mb-0" id="proyectoNombre">Cargando proyecto...</h4>
+            <h4 class="mb-0" id="proyectoNombre">Cargando tablero...</h4>
             <div>
-                <button class="btn btn-light btn-sm" onclick="mostrarColaboradores()">
+                <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#colaboradoresModal">
                     <i class="bi bi-person-circle"></i>
                 </button>
             </div>

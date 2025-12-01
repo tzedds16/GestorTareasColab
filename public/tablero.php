@@ -147,6 +147,10 @@ if (!$proyecto_id) {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script>
+        // Pasar el ID del tablero a kanban.js
+        const tableroId = <?php echo intval($proyecto_id); ?>;
+    </script>
     <script src="../assets/js/kanban.js"></script>
 </body>
 </html>

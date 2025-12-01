@@ -1,6 +1,6 @@
 <?php
 header('Content-Type: application/json');
-require_once '../config/database.php';
+require_once './config/database.php';
 session_start();
 
 if (!isset($_SESSION['usuario_id'])) {
@@ -60,9 +60,9 @@ function verificarAccesoTablero($tablero_id, $usuario_id) {
     global $conn;
     
     $stmt = $conn->prepare("
-        SELECT t.id FROM tableros t
-        JOIN proyectos p ON t.proyecto_id = p.id
-        WHERE t.id = ? AND (p.usuario_id = ? OR p.id IN (
+        SELECT tableros.id FROM tableros
+        JOIN proyectos ON tableros.proyecto_id = proyectos.id
+        WHERE tableros.id = ? AND (proyectos.usuario_id = ? OR proyectos.id IN (
             SELECT proyecto_id FROM colaboradores WHERE usuario_id = ?
         ))
     ");
@@ -81,11 +81,10 @@ function listarTareasPorTablero($tablero_id, $usuario_id) {
     }
     
     $stmt = $conn->prepare("
-        SELECT t.*, u.nombre as asignado_nombre
-        FROM tareas t
-        LEFT JOIN usuarios u ON t.asignado_a = u.id
-        WHERE t.tablero_id = ?
-        ORDER BY t.posicion ASC, t.fecha_creacion DESC
+        SELECT *
+        FROM tareas
+        WHERE tablero_id = ?
+        ORDER BY orden ASC, fecha_creacion DESC
     ");
     $stmt->bind_param('i', $tablero_id);
     $stmt->execute();
@@ -119,12 +118,11 @@ function listarTareasPorProyecto($proyecto_id, $usuario_id) {
     }
     
     $stmt = $conn->prepare("
-        SELECT t.*, u.nombre as asignado_nombre, tb.nombre as tablero_nombre
+        SELECT t.*, tb.nombre as tablero_nombre
         FROM tareas t
-        LEFT JOIN usuarios u ON t.asignado_a = u.id
         JOIN tableros tb ON t.tablero_id = tb.id
         WHERE tb.proyecto_id = ?
-        ORDER BY tb.id, t.posicion ASC, t.fecha_creacion DESC
+        ORDER BY tb.id, t.orden ASC, t.fecha_creacion DESC
     ");
     $stmt->bind_param('i', $proyecto_id);
     $stmt->execute();
@@ -142,10 +140,9 @@ function obtenerTarea($id, $usuario_id) {
     global $conn;
     
     $stmt = $conn->prepare("
-        SELECT t.*, u.nombre as asignado_nombre
-        FROM tareas t
-        LEFT JOIN usuarios u ON t.asignado_a = u.id
-        WHERE t.id = ?
+        SELECT *
+        FROM tareas
+        WHERE id = ?
     ");
     $stmt->bind_param('i', $id);
     $stmt->execute();
@@ -175,6 +172,7 @@ function crearTarea($usuario_id) {
     $titulo = trim($data['titulo'] ?? '');
     $descripcion = trim($data['descripcion'] ?? '');
     $prioridad = $data['prioridad'] ?? 'media';
+    $estado = $data['estado'] ?? 'tareas';
     
     if (!$tablero_id || !$titulo) {
         http_response_code(400);
@@ -190,10 +188,10 @@ function crearTarea($usuario_id) {
     }
     
     $stmt = $conn->prepare("
-        INSERT INTO tareas (tablero_id, titulo, descripcion, prioridad)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO tareas (tablero_id, titulo, descripcion, prioridad, estado)
+        VALUES (?, ?, ?, ?, ?)
     ");
-    $stmt->bind_param('isss', $tablero_id, $titulo, $descripcion, $prioridad);
+    $stmt->bind_param('issss', $tablero_id, $titulo, $descripcion, $prioridad, $estado);
     
     if ($stmt->execute()) {
         echo json_encode([
@@ -252,18 +250,23 @@ function actualizarTarea($id, $data, $usuario_id) {
         $tipos .= 's';
         $valores[] = $data['prioridad'];
     }
+    if (isset($data['orden'])) {
+        $campos[] = 'orden = ?';
+        $tipos .= 'i';
+        $valores[] = $data['orden'];
+    }
     if (isset($data['posicion'])) {
-        $campos[] = 'posicion = ?';
+        $campos[] = 'orden = ?';
         $tipos .= 'i';
         $valores[] = $data['posicion'];
     }
-    if (isset($data['asignado_a'])) {
-        $campos[] = 'asignado_a = ?';
-        $tipos .= isset($data['asignado_a']) && $data['asignado_a'] ? 'i' : 's';
-        $valores[] = $data['asignado_a'] ?: null;
+    if (isset($data['fecha_limite'])) {
+        $campos[] = 'fecha_limite = ?';
+        $tipos .= 's';
+        $valores[] = $data['fecha_limite'] ?: null;
     }
     if (isset($data['fecha_vencimiento'])) {
-        $campos[] = 'fecha_vencimiento = ?';
+        $campos[] = 'fecha_limite = ?';
         $tipos .= 's';
         $valores[] = $data['fecha_vencimiento'] ?: null;
     }
