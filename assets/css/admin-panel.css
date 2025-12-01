@@ -1,0 +1,115 @@
+/* Panel de Estadísticas - Estilos con tema morado y negro */
+:root {
+    --color-primary: #4e3d7a;
+    --color-secondary: #0e0d0f;
+    --color-accent: #2a72ff;
+    --color-text: #ffffff;
+    --color-text-muted: rgba(255, 255, 255, 0.7);
+    --color-todo: #6d5ba3;
+    --color-progress: #2a72ff;
+    --color-done: #28a745;
+    --color-alta: #dc3545;
+    --color-media: #ffc107;
+    --color-baja: #17a2b8;
+}
+
+.stats-container {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    padding: 40px 30px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    padding: 30px 20px;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.stat-card-todo {
+    border-left: 4px solid #ff9800;
+}
+
+.stat-card-progress {
+    border-left: 4px solid #2a72ff;
+}
+
+.stat-card-done {
+    border-left: 4px solid #28a745;
+}
+
+.stat-card-priority-alta {
+    border-left: 4px solid #dc3545;
+}
+
+.stat-card-priority-media {
+    border-left: 4px solid #ffc107;
+}
+
+.stat-card-priority-baja {
+    border-left: 4px solid #17a2b8;
+}
+
+.stat-value {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin-bottom: 15px;
+    color: var(--color-text);
+}
+
+.stat-label {
+    font-size: 1.2rem;
+    color: var(--color-text-muted);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* Contenedor de Gráficas */
+.chart-container {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    position: relative;
+    height: 400px;
+}
+
+.chart-container canvas {
+    max-height: 350px;
+}
+
+@media (max-width: 768px) {
+    .stat-card {
+        padding: 25px 15px;
+    }
+    
+    .stat-value {
+        font-size: 2.5rem;
+    }
+    
+    .stat-label {
+        font-size: 1rem;
+    }
+    
+    .stats-container {
+        padding: 30px 20px;
+    }
+
+    .chart-container {
+        height: 350px;
+        padding: 20px;
+    }
+}

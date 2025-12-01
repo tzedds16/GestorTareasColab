@@ -15,7 +15,9 @@ $usuario_id = $_SESSION['usuario_id'];
 try {
     switch ($method) {
         case 'GET':
-            if (isset($_GET['id'])) {
+            if (isset($_GET['action']) && $_GET['action'] === 'metrics') {
+                metricasTareas($usuario_id);
+            } else if (isset($_GET['id'])) {
                 obtenerTarea($_GET['id'], $usuario_id);
             } else if (isset($_GET['tablero_id'])) {
                 listarTareasPorTablero($_GET['tablero_id'], $usuario_id);
@@ -25,7 +27,11 @@ try {
             break;
             
         case 'POST':
-            crearTarea($usuario_id);
+            if (isset($_GET['action']) && $_GET['action'] === 'create') {
+                crearTareaPanel($usuario_id);
+            } else {
+                crearTarea($usuario_id);
+            }
             break;
             
         case 'PUT':
@@ -203,6 +209,68 @@ function crearTarea($usuario_id) {
         http_response_code(500);
         echo json_encode(['success' => false, 'message' => 'Error al crear tarea']);
     }
+}
+
+function crearTareaPanel($usuario_id) {
+    global $conn;
+    $data = json_decode(file_get_contents('php://input'), true);
+    $tablero_id = $data['tablero'] ?? null;
+    $titulo = trim($data['titulo'] ?? '');
+    $descripcion = trim($data['descripcion'] ?? '');
+    $prioridad = $data['prioridad'] ?? 'media';
+    $responsable = $data['responsable'] ?? null;
+    $fecha_limite = $data['vencimiento'] ?? null;
+    $estado = 'tareas';
+    if (!$tablero_id || !$titulo || !$responsable || !$fecha_limite) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Todos los campos son requeridos']);
+        return;
+    }
+    if (!verificarAccesoTablero($tablero_id, $usuario_id)) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'No tienes acceso a este tablero']);
+        return;
+    }
+    $stmt = $conn->prepare(
+        "INSERT INTO tareas (tablero_id, titulo, descripcion, prioridad, estado, responsable_id, fecha_limite)
+        VALUES (?, ?, ?, ?, ?, ?, ?)"
+    );
+    $stmt->bind_param('issssis', $tablero_id, $titulo, $descripcion, $prioridad, $estado, $responsable, $fecha_limite);
+    if ($stmt->execute()) {
+        echo json_encode([
+            'success' => true,
+            'message' => 'Tarea creada',
+            'tarea_id' => $conn->insert_id
+        ]);
+    } else {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => 'Error al crear tarea']);
+    }
+}
+
+function metricasTareas($usuario_id) {
+    global $conn;
+    $total = 0;
+    $pendientes = 0;
+    $atrasadas = 0;
+    $hoy = date('Y-m-d H:i:s');
+    $stmt = $conn->prepare("SELECT COUNT(*) as total FROM tareas");
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $total = intval($row['total']);
+    $stmt = $conn->prepare("SELECT COUNT(*) as pendientes FROM tareas WHERE estado = 'tareas'");
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $pendientes = intval($row['pendientes']);
+    $stmt = $conn->prepare("SELECT COUNT(*) as atrasadas FROM tareas WHERE estado = 'tareas' AND fecha_limite < ?");
+    $stmt->bind_param('s', $hoy);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $atrasadas = intval($row['atrasadas']);
+    echo json_encode(['total' => $total, 'pendientes' => $pendientes, 'atrasadas' => $atrasadas]);
 }
 
 function actualizarTarea($id, $data, $usuario_id) {
