@@ -48,7 +48,6 @@ try {
                 ]);
                 
             } else {
-                // Listar todos los proyectos del usuario
                 $stmt = $conn->prepare("
                     SELECT p.*, u.nombre as usuario_nombre 
                     FROM proyectos p 
@@ -104,7 +103,6 @@ try {
             break;
             
         case 'PUT':
-            // Actualizar proyecto
             if (!isset($_GET['id'])) {
                 http_response_code(400);
                 echo json_encode(['success' => false, 'message' => 'ID de proyecto requerido']);
@@ -113,8 +111,7 @@ try {
             
             $proyecto_id = intval($_GET['id']);
             $data = json_decode(file_get_contents('php://input'), true);
-            
-            // Verificar que el usuario es el dueño del proyecto
+    
             $stmt = $conn->prepare("SELECT usuario_id FROM proyectos WHERE id = ?");
             $stmt->bind_param('i', $proyecto_id);
             $stmt->execute();
@@ -173,7 +170,6 @@ try {
             break;
             
         case 'DELETE':
-            // Eliminar proyecto
             if (!isset($_GET['id'])) {
                 http_response_code(400);
                 echo json_encode(['success' => false, 'message' => 'ID de proyecto requerido']);
@@ -181,8 +177,7 @@ try {
             }
             
             $proyecto_id = intval($_GET['id']);
-            
-            // Verificar que el usuario es el dueño del proyecto
+
             $stmt = $conn->prepare("SELECT usuario_id FROM proyectos WHERE id = ?");
             $stmt->bind_param('i', $proyecto_id);
             $stmt->execute();

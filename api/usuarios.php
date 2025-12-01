@@ -69,7 +69,6 @@ function registrarUsuario() {
     $email = trim($data['email'] ?? '');
     $password = $data['password'] ?? '';
     
-    // Validaciones
     if (empty($nombre) || empty($email) || empty($password)) {
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'Todos los campos son requeridos']);
@@ -89,7 +88,6 @@ function registrarUsuario() {
     }
     
     try {
-        // Verificar si el email ya existe
         $stmt = $conn->prepare("SELECT id FROM usuarios WHERE email = ?");
         $stmt->bind_param('s', $email);
         $stmt->execute();
@@ -101,7 +99,6 @@ function registrarUsuario() {
             return;
         }
         
-        // Crear usuario
         $password_hash = password_hash($password, PASSWORD_DEFAULT);
         
         $stmt = $conn->prepare("INSERT INTO usuarios (nombre, email, password) VALUES (?, ?, ?)");
@@ -126,7 +123,6 @@ function registrarUsuario() {
 function obtenerUsuario($id) {
     global $conn;
     
-    // Solo permitir ver el propio perfil o si es admin
     if (!isset($_SESSION['usuario_id']) || ($_SESSION['usuario_id'] != $id && $_SESSION['rol'] != 'administrador')) {
         http_response_code(403);
         echo json_encode(['success' => false, 'message' => 'No autorizado']);
@@ -154,7 +150,6 @@ function obtenerUsuario($id) {
 function listarUsuarios() {
     global $conn;
     
-    // Solo administradores pueden listar todos los usuarios
     if (!isset($_SESSION['usuario_id']) || $_SESSION['rol'] != 'administrador') {
         http_response_code(403);
         echo json_encode(['success' => false, 'message' => 'No autorizado']);
@@ -181,7 +176,6 @@ function listarUsuarios() {
 function actualizarUsuario($id) {
     global $conn;
     
-    // Solo permitir actualizar el propio perfil o si es admin
     if (!isset($_SESSION['usuario_id']) || ($_SESSION['usuario_id'] != $id && $_SESSION['rol'] != 'administrador')) {
         http_response_code(403);
         echo json_encode(['success' => false, 'message' => 'No autorizado']);

@@ -2,7 +2,6 @@
 session_start();
 require_once '../api/config/database.php';
 
-// Verificar autenticación
 if (!isset($_SESSION['usuario_id'])) {
     header('Location: auth.html');
     exit;
@@ -26,7 +25,6 @@ if (!$proyecto_id) {
     <link rel="stylesheet" href="../assets/css/styles.css">
 </head>
 <body>
-    <!-- Header -->
     <nav class="navbar navbar-dark bg-dark">
         <div class="container-fluid">
             <span class="navbar-brand mb-0 h1">KANBAN</span>
@@ -42,7 +40,6 @@ if (!$proyecto_id) {
         </div>
     </nav>
 
-    <!-- Título del Proyecto -->
     <div class="container-fluid mt-3">
         <div class="d-flex justify-content-between align-items-center bg-primary text-white p-3 rounded">
             <h4 class="mb-0" id="proyectoNombre">Proyecto 1 - Tablero 1</h4>
@@ -54,10 +51,8 @@ if (!$proyecto_id) {
         </div>
     </div>
 
-    <!-- Tablero Kanban -->
     <div class="container-fluid mt-4">
         <div class="row g-3">
-            <!-- Columna: Tareas -->
             <div class="col-md-4">
                 <div class="kanban-column">
                     <div class="kanban-header">
@@ -67,12 +62,10 @@ if (!$proyecto_id) {
                         </button>
                     </div>
                     <div class="kanban-body" id="columna-tareas" data-estado="tareas">
-                        <!-- Las tareas se cargarán dinámicamente -->
                     </div>
                 </div>
             </div>
 
-            <!-- Columna: En Proceso -->
             <div class="col-md-4">
                 <div class="kanban-column">
                     <div class="kanban-header">
@@ -82,12 +75,10 @@ if (!$proyecto_id) {
                         </button>
                     </div>
                     <div class="kanban-body" id="columna-en_proceso" data-estado="en_proceso">
-                        <!-- Las tareas se cargarán dinámicamente -->
                     </div>
                 </div>
             </div>
 
-            <!-- Columna: Terminadas -->
             <div class="col-md-4">
                 <div class="kanban-column">
                     <div class="kanban-header">
@@ -97,14 +88,12 @@ if (!$proyecto_id) {
                         </button>
                     </div>
                     <div class="kanban-body" id="columna-terminadas" data-estado="terminadas">
-                        <!-- Las tareas se cargarán dinámicamente -->
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal para Crear/Editar Tarea -->
     <div class="modal fade" id="tareaModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -148,7 +137,6 @@ if (!$proyecto_id) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script>
-        // Pasar el ID del tablero a kanban.js
         const tableroId = <?php echo intval($proyecto_id); ?>;
     </script>
     <script src="../assets/js/kanban.js"></script>

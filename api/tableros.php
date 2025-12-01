@@ -136,7 +136,6 @@ function obtenerTablero($id, $usuario_id) {
     $result = $stmt->get_result();
     
     if ($tablero = $result->fetch_assoc()) {
-        // Verificar acceso al proyecto
         if (!verificarAccesoProyecto($tablero['proyecto_id'], $usuario_id)) {
             http_response_code(403);
             echo json_encode(['success' => false, 'message' => 'No tienes acceso a este tablero']);
@@ -164,14 +163,12 @@ function crearTablero($usuario_id) {
         return;
     }
     
-    // Verificar acceso al proyecto
     if (!verificarAccesoProyecto($proyecto_id, $usuario_id)) {
         http_response_code(403);
         echo json_encode(['success' => false, 'message' => 'No tienes acceso a este proyecto']);
         return;
     }
     
-    // Obtener siguiente posición
     $stmt = $conn->prepare("SELECT MAX(posicion) as max_pos FROM tableros WHERE proyecto_id = ?");
     $stmt->bind_param('i', $proyecto_id);
     $stmt->execute();
@@ -199,7 +196,6 @@ function crearTablero($usuario_id) {
 function actualizarTablero($id, $data, $usuario_id) {
     global $conn;
     
-    // Obtener tablero y verificar acceso
     $stmt = $conn->prepare("SELECT proyecto_id FROM tableros WHERE id = ?");
     $stmt->bind_param('i', $id);
     $stmt->execute();
@@ -255,8 +251,7 @@ function actualizarTablero($id, $data, $usuario_id) {
 
 function eliminarTablero($id, $usuario_id) {
     global $conn;
-    
-    // Obtener tablero y verificar acceso
+   
     $stmt = $conn->prepare("SELECT proyecto_id FROM tableros WHERE id = ?");
     $stmt->bind_param('i', $id);
     $stmt->execute();

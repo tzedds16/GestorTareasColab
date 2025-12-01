@@ -107,7 +107,6 @@ function listarTareasPorTablero($tablero_id, $usuario_id) {
 function listarTareasPorProyecto($proyecto_id, $usuario_id) {
     global $conn;
     
-    // Verificar acceso al proyecto
     $stmt = $conn->prepare("
         SELECT id FROM proyectos
         WHERE id = ? AND (usuario_id = ? OR id IN (
@@ -155,7 +154,6 @@ function obtenerTarea($id, $usuario_id) {
     $result = $stmt->get_result();
     
     if ($tarea = $result->fetch_assoc()) {
-        // Verificar que el usuario tenga acceso
         if (!verificarAccesoTablero($tarea['tablero_id'], $usuario_id)) {
             http_response_code(403);
             echo json_encode(['success' => false, 'message' => 'No tienes acceso a esta tarea']);
@@ -186,7 +184,6 @@ function crearTarea($usuario_id) {
         return;
     }
     
-    // Verificar acceso al tablero
     if (!verificarAccesoTablero($tablero_id, $usuario_id)) {
         http_response_code(403);
         echo json_encode(['success' => false, 'message' => 'No tienes acceso a este tablero']);
@@ -276,7 +273,6 @@ function metricasTareas($usuario_id) {
 function actualizarTarea($id, $data, $usuario_id) {
     global $conn;
     
-    // Obtener tarea y verificar acceso
     $stmt = $conn->prepare("SELECT tablero_id FROM tareas WHERE id = ?");
     $stmt->bind_param('i', $id);
     $stmt->execute();
@@ -363,7 +359,6 @@ function actualizarTarea($id, $data, $usuario_id) {
 function eliminarTarea($id, $usuario_id) {
     global $conn;
     
-    // Obtener tarea y verificar acceso
     $stmt = $conn->prepare("SELECT tablero_id FROM tareas WHERE id = ?");
     $stmt->bind_param('i', $id);
     $stmt->execute();

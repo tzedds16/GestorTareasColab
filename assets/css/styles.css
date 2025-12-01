@@ -24,7 +24,6 @@ body {
     min-height: 100vh;
 }
 
-/* Pagina principal */
 .kanban-bg {
     background: linear-gradient(135deg, var(--color-primary) 0%, #6d5ba3 100%);
     min-height: 100vh;
@@ -41,7 +40,6 @@ body {
     border-bottom: 1px solid var(--color-border);
 }
 
-/* Hero Section */
 .container.py-5 {
     padding-top: 6rem !important;
     padding-bottom: 6rem !important;
@@ -61,7 +59,6 @@ h1 {
     font-weight: 300;
 }
 
-/* Botones */
 .btn {
     border-radius: 10px;
     padding: 12px 30px;
@@ -93,14 +90,12 @@ h1 {
     transform: translateY(-2px);
 }
 
-/* Imagen */
 .img-fluid.rounded {
     border-radius: 20px !important;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
     border: 1px solid var(--color-border);
 }
 
-/* Footer */
 footer {
     background: var(--color-secondary) !important;
     margin-top: auto;
@@ -115,7 +110,6 @@ footer .text-muted {
     color: var(--color-text-muted) !important;
 }
 
-/* Login */
 .login-card {
     background: rgba(255, 255, 255, 0.95);
     border-radius: 20px;
@@ -135,7 +129,6 @@ footer .text-muted {
     margin-bottom: 2rem;
 }
 
-/* Pestañas */
 .nav-pills .nav-link {
     background: none;
     color: #666;
@@ -150,7 +143,6 @@ footer .text-muted {
     color: white;
 }
 
-/* Formularios */
 .form-control {
     border-radius: 10px;
     padding: 15px;
@@ -171,7 +163,6 @@ footer .text-muted {
     margin-bottom: 8px;
 }
 
-/* Proyectos */
 .topbar {
     background: var(--color-secondary);
     height: 70px;
@@ -192,7 +183,6 @@ footer .text-muted {
     font-weight: 500;
 }
 
-/* Sidebar */
 .sidebar {
     background: var(--color-secondary);
     width: 300px;
@@ -261,7 +251,6 @@ footer .text-muted {
     transform: translateY(-2px);
 }
 
-/* Contenido Principal */
 .main-content {
     margin-left: 300px;
     padding: 100px 50px 50px;
@@ -329,7 +318,6 @@ footer .text-muted {
     opacity: 0.7;
 }
 
-/* Estados vacios */
 .empty-state {
     text-align: center;
     padding: 60px 20px;
@@ -342,20 +330,17 @@ footer .text-muted {
     opacity: 0.5;
 }
 
-/* Tablero kanban */
 .navbar-dark.bg-dark {
     background: var(--color-secondary) !important;
     border-bottom: 1px solid var(--color-border);
 }
 
-/* Titulo del proyecto */
 .bg-primary {
     background: linear-gradient(135deg, var(--color-primary) 0%, #6d5ba3 100%) !important;
     border: none;
     border-radius: 15px;
 }
 
-/* Columnas Kanban */
 .kanban-column {
     background: rgba(255, 255, 255, 0.08);
     border-radius: 16px;
@@ -392,7 +377,6 @@ footer .text-muted {
     min-height: 600px;
 }
 
-/* Tarjetas de tareas */
 .tarea-card {
     background: white;
     border-radius: 12px;
@@ -442,7 +426,6 @@ footer .text-muted {
     align-items: center;
 }
 
-/* Prioridad */
 .prioridad-alta { 
     background: #e53e3e !important; 
     color: white; 
@@ -474,7 +457,6 @@ footer .text-muted {
     transform: scale(1.1);
 }
 
-/* Drag & Drop */
 .sortable-ghost {
     opacity: 0.4;
     background: #f8f9fa;
@@ -485,7 +467,6 @@ footer .text-muted {
     transform: rotate(5deg);
 }
 
-/* Modales */
 .modal-content {
     border-radius: 20px;
     border: none;
@@ -521,7 +502,6 @@ footer .text-muted {
     border-radius: 0 0 20px 20px;
 }
 
-/* Alertas */
 .alert {
     border-radius: 12px;
     border: none;
@@ -544,7 +524,6 @@ footer .text-muted {
     color: #1e40af;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
     .sidebar {
         width: 100%;
@@ -587,7 +566,6 @@ footer .text-muted {
     }
 }
 
-/* Utilidades */
 .text-muted {
     color: var(--color-text-muted) !important;
 }
@@ -596,7 +574,6 @@ footer .text-muted {
     border-color: var(--color-border) !important;
 }
 
-/* Scrollbar personalizado */
 ::-webkit-scrollbar {
     width: 8px;
 }

@@ -8,7 +8,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
     $confirmar_password = $_POST['confirmar_password'] ?? '';
     
-    // Validaciones básicas
     if (empty($nombre) || empty($email) || empty($password) || empty($confirmar_password)) {
         header('Location: auth.html?error=3&tab=register');
         exit;
@@ -30,7 +29,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     try {
-        // Verificar si email existe
         $stmt = $conn->prepare("SELECT id FROM usuarios WHERE email = ?");
         $stmt->bind_param('s', $email);
         $stmt->execute();
@@ -40,13 +38,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
         
-        // Crear usuario
         $password_hash = password_hash($password, PASSWORD_DEFAULT);
         $stmt = $conn->prepare("INSERT INTO usuarios (nombre, email, password) VALUES (?, ?, ?)");
         $stmt->bind_param('sss', $nombre, $email, $password_hash);
         
         if ($stmt->execute()) {
-            // Registrarse fue exitoso, redirigir a login con mensaje de éxito
             header('Location: auth.html?success=1&tab=login');
             exit;
         } else {

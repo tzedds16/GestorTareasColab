@@ -20,29 +20,24 @@ function mostrarAlerta(tipo, mensaje) {
     alertContainer.innerHTML = '';
     alertContainer.appendChild(alertDiv);
     
-    // Auto-cerrar la alerta después de 5 segundos
     setTimeout(() => {
         const bsAlert = new bootstrap.Alert(alertDiv);
         bsAlert.close();
     }, 5000);
 }
 
-// Esperar a que el DOM esté listo
 document.addEventListener('DOMContentLoaded', function() {
-    // Procesar parámetros de URL
     const urlParams = new URLSearchParams(window.location.search);
     const error = urlParams.get('error');
     const success = urlParams.get('success');
     const tab = urlParams.get('tab');
     
-    // Cambiar de tab si es necesario
     if (tab === 'register') {
         switchToRegister();
     } else if (tab === 'login' || success) {
         switchToLogin();
     }
     
-    // Mostrar mensajes
     if (error) {
         const errores = {
             1: 'Credenciales incorrectas. Verifica tu email y contraseña.',
@@ -56,14 +51,12 @@ document.addEventListener('DOMContentLoaded', function() {
         mostrarAlerta('success', '¡Cuenta creada exitosamente! Ya puedes iniciar sesión.');
     }
     
-    // Validar formulario de registro
     const registerForm = document.getElementById('registerForm');
     if (registerForm) {
         const passwordInput = registerForm.querySelector('input[name="password"]');
         const confirmPasswordInput = registerForm.querySelector('input[name="confirmar_password"]');
         
         if (confirmPasswordInput && passwordInput) {
-            // Validación en tiempo real
             const validatePasswords = function() {
                 if (confirmPasswordInput.value && passwordInput.value !== confirmPasswordInput.value) {
                     confirmPasswordInput.setCustomValidity('Las contraseñas no coinciden');
@@ -80,9 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
             confirmPasswordInput.addEventListener('keyup', validatePasswords);
         }
         
-        // Validación del formulario al enviar
         registerForm.addEventListener('submit', function(e) {
-            // Verificar que contraseñas coincidan
             if (passwordInput.value !== confirmPasswordInput.value) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -98,7 +89,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Limpiar parámetros de URL después de mostrar mensajes
     if (error || success || tab) {
         window.history.replaceState({}, document.title, window.location.pathname);
     }

@@ -1,20 +1,16 @@
-// tableroId se obtiene de la URL
 let tableroId = new URLSearchParams(window.location.search).get('id');
 let tareaModal;
 let tareas = [];
 
-// Inicialización
 document.addEventListener('DOMContentLoaded', function() {
     tareaModal = new bootstrap.Modal(document.getElementById('tareaModal'));
     
-    // Verificar que tenemos un tableroId
     if (!tableroId) {
         alert('Falta el ID del tablero');
         window.location.href = 'proyectos.html';
         return;
     }
     
-    // Cargar datos
     verificarAutenticacion();
     cargarUsuario();
     cargarTablero();
@@ -22,7 +18,6 @@ document.addEventListener('DOMContentLoaded', function() {
     cargarTareas();
 });
 
-// Verificar autenticación
 async function verificarAutenticacion() {
     try {
         const response = await fetch('../api/check_auth.php');
@@ -37,7 +32,6 @@ async function verificarAutenticacion() {
     }
 }
 
-// Cargar datos del usuario
 async function cargarUsuario() {
     try {
         const response = await fetch('../api/usuario.php');
@@ -55,7 +49,6 @@ async function cargarUsuario() {
     }
 }
 
-// Cargar datos del tablero
 async function cargarTablero() {
     try {
         const response = await fetch(`../api/tablero.php?id=${tableroId}`);
@@ -74,7 +67,6 @@ async function cargarTablero() {
     }
 }
 
-// Cargar tareas del tablero
 async function cargarTareas() {
     try {
         const response = await fetch(`../api/tareas.php?tablero_id=${tableroId}`);
@@ -82,7 +74,7 @@ async function cargarTareas() {
         
         if (data.success) {
             tareas = data.tareas || [];
-            console.log('Tareas cargadas:', tareas); // Debug
+            console.log('Tareas cargadas:', tareas); 
             mostrarTareas();
         } else {
             console.error('Error al cargar tareas:', data.message);
@@ -96,9 +88,7 @@ async function cargarTareas() {
     }
 }
 
-// Mostrar tareas en las columnas
 function mostrarTareas() {
-    // Limpiar columnas
     document.getElementById('columna-tareas').innerHTML = '';
     document.getElementById('columna-en_proceso').innerHTML = '';
     document.getElementById('columna-terminadas').innerHTML = '';
@@ -108,14 +98,12 @@ function mostrarTareas() {
         return;
     }
     
-    // Agrupar tareas por estado
     const tareasPorEstado = {
         'tareas': tareas.filter(t => t.estado === 'tareas'),
         'en_proceso': tareas.filter(t => t.estado === 'en_proceso'),
         'terminadas': tareas.filter(t => t.estado === 'terminadas')
     };
     
-    // Mostrar tareas en cada columna
     Object.keys(tareasPorEstado).forEach(estado => {
         const columna = document.getElementById(`columna-${estado}`);
         const tareasEnEstado = tareasPorEstado[estado];
@@ -137,11 +125,9 @@ function mostrarTareas() {
     actualizarContadores();
 }
 
-// Agregar tarea al DOM
 function agregarTareaAlDOM(tarea) {
     const columna = document.getElementById(`columna-${tarea.estado}`);
     
-    // Remover mensaje vacio si existe
     const emptyState = columna.querySelector('.text-center.text-muted');
     if (emptyState) {
         emptyState.remove();
@@ -173,7 +159,6 @@ function agregarTareaAlDOM(tarea) {
     columna.appendChild(tareaCard);
 }
 
-// Inicializar drag and drop
 function inicializarDragAndDrop() {
     const columnas = ['tareas', 'en_proceso', 'terminadas'];
     
@@ -198,7 +183,6 @@ function inicializarDragAndDrop() {
     });
 }
 
-// Mostrar columnas vacias
 function mostrarColumnasVacias() {
     const columnas = {
         'tareas': 'No hay tareas pendientes',
@@ -217,7 +201,6 @@ function mostrarColumnasVacias() {
     });
 }
 
-// Actualizar contadores
 function actualizarContadores() {
     const columnas = ['tareas', 'en_proceso', 'terminadas'];
     
@@ -232,7 +215,6 @@ function actualizarContadores() {
     });
 }
 
-// Abrir modal para crear tarea
 function abrirModalTarea(estado = 'tareas') {
     document.getElementById('formTarea').reset();
     document.getElementById('tareaId').value = '';
@@ -243,7 +225,6 @@ function abrirModalTarea(estado = 'tareas') {
     tareaModal.show();
 }
 
-// Editar tarea
 function editarTarea(id) {
     const tarea = tareas.find(t => t.id == id);
     if (tarea) {
@@ -258,7 +239,6 @@ function editarTarea(id) {
     }
 }
 
-// Guardar tarea
 async function guardarTarea() {
     const tareaId = document.getElementById('tareaId').value;
     const titulo = document.getElementById('tareaTitulo').value.trim();
@@ -275,7 +255,6 @@ async function guardarTarea() {
         let response;
         
         if (tareaId) {
-            // Actualizar tarea existente
             response = await fetch(`../api/tareas.php?id=${tareaId}`, {
                 method: 'PUT',
                 headers: {
@@ -289,7 +268,6 @@ async function guardarTarea() {
                 })
             });
         } else {
-            // Crear nueva tarea
             response = await fetch('../api/tareas.php', {
                 method: 'POST',
                 headers: {
@@ -310,7 +288,7 @@ async function guardarTarea() {
         if (data.success) {
             tareaModal.hide();
             mostrarAlerta(tareaId ? 'Tarea actualizada' : 'Tarea creada', 'success');
-            cargarTareas(); // Recargar tareas desde BD
+            cargarTareas(); 
         } else {
             mostrarAlerta(data.message || 'Error al guardar', 'danger');
         }
@@ -320,7 +298,6 @@ async function guardarTarea() {
     }
 }
 
-// Eliminar tarea
 async function eliminarTarea(id) {
     if (!confirm('¿Estás seguro de eliminar esta tarea?')) {
         return;
@@ -337,21 +314,18 @@ async function eliminarTarea(id) {
             mostrarAlerta('Tarea eliminada', 'success');
             cargarTareas();
         } else {
-            // Eliminar localmente
             tareas = tareas.filter(t => t.id != id);
             mostrarAlerta('Tarea eliminada', 'success');
             mostrarTareas();
         }
     } catch (error) {
         console.error('Error:', error);
-        // Eliminar localmente
         tareas = tareas.filter(t => t.id != id);
         mostrarAlerta('Tarea eliminada', 'success');
         mostrarTareas();
     }
 }
 
-// Actualizar estado de tarea (drag & drop)
 async function actualizarEstadoTarea(id, nuevoEstado) {
     try {
         const response = await fetch(`../api/tareas.php?id=${id}`, {
@@ -367,7 +341,6 @@ async function actualizarEstadoTarea(id, nuevoEstado) {
         const data = await response.json();
         
         if (!data.success) {
-            // Actualizar localmente
             const tarea = tareas.find(t => t.id == id);
             if (tarea) {
                 tarea.estado = nuevoEstado;
@@ -377,7 +350,6 @@ async function actualizarEstadoTarea(id, nuevoEstado) {
         actualizarContadores();
     } catch (error) {
         console.error('Error:', error);
-        // Actualizar localmente
         const tarea = tareas.find(t => t.id == id);
         if (tarea) {
             tarea.estado = nuevoEstado;
@@ -386,7 +358,6 @@ async function actualizarEstadoTarea(id, nuevoEstado) {
     }
 }
 
-// Funciones de utilidad
 function getTextoEstado(estado) {
     const estados = {
         'tareas': 'pendientes',
@@ -430,14 +401,11 @@ function crearContenedorAlertas() {
     return container;
 }
 
-// Funciones de navegacion
 function mostrarColaboradores() {
     alert('Funcionalidad de colaboradores en desarrollo');
 }
 
 function irAEstadisticas() {
-    // Guardar el tablero_id en localStorage para que el panel de estadísticas lo use
-    // El tableroId ya está disponible como variable global
     console.log('irAEstadisticas llamado');
     console.log('tableroId global:', tableroId);
     

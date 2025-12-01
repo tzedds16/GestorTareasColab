@@ -1,5 +1,3 @@
-// proyectos.js - Funcionalidades para la página de proyectos
-
 let proyectos = [];
 let tableros = [];
 let proyectoModal;
@@ -10,15 +8,13 @@ document.addEventListener('DOMContentLoaded', function() {
     proyectoModal = new bootstrap.Modal(document.getElementById('modalProyecto'));
     tableroModal = new bootstrap.Modal(document.getElementById('modalTablero'));
 
-    // Verificar autenticación y cargar datos
     verificarAutenticacion();
     cargarUsuario();
-    cargarProyectos(); // carga proyectos para select & sidebar
-    cargarTableros(); // carga los tableros para la vista principal
+    cargarProyectos(); 
+    cargarTableros(); 
     mostrarAlertaDeLlamadaLogin();
 });
 
-// Verificar si el usuario está autenticado
 async function verificarAutenticacion() {
     try {
         const response = await fetch('../api/check_auth.php');
@@ -33,7 +29,6 @@ async function verificarAutenticacion() {
     }
 }
 
-// Cargar datos del usuario
 async function cargarUsuario() {
     try {
         const response = await fetch('../api/usuario.php');
@@ -51,7 +46,6 @@ async function cargarUsuario() {
     }
 }
 
-// Mostrar alerta si viene de login exitoso
 function mostrarAlertaDeLlamadaLogin() {
     const params = new URLSearchParams(window.location.search);
     if (params.get('login_success')) {
@@ -75,7 +69,6 @@ function mostrarAlertaDeLlamadaLogin() {
     }
 }
 
-// Cargar proyectos desde la API
 async function cargarProyectos() {
     try {
         const response = await fetch('../api/proyectos.php');
@@ -94,7 +87,6 @@ async function cargarProyectos() {
     }
 }
 
-// Cargar tableros desde la API (lista global del usuario)
 async function cargarTableros() {
     try {
         const response = await fetch('../api/tableros.php');
@@ -112,7 +104,6 @@ async function cargarTableros() {
     }
 }
 
-// Mostrar proyectos en el sidebar y en el contenido principal
 function poblarSidebarProyectos() {
     const listaProyectos = document.getElementById('listaProyectos');
     listaProyectos.innerHTML = '';
@@ -132,7 +123,6 @@ function poblarSidebarProyectos() {
             </div>
         `;
         proyectoElement.onclick = () => filtrarPorProyecto(proyecto.id);
-        // botón eliminar dentro del elemento
         const delBtn = proyectoElement.querySelector('.del-proj-btn');
         if (delBtn) {
             delBtn.addEventListener('click', function(e) {
@@ -160,7 +150,6 @@ function poblarSelectProyectos() {
 function mostrarTableros(filterProyectoId = null) {
     const boardsList = document.getElementById('boardsList');
     boardsList.innerHTML = '';
-    // Si no se indica proyecto y no hay proyecto seleccionado, mostrar placeholder
     if (!filterProyectoId && !currentProyectoId) {
         boardsList.innerHTML = `
             <div class="col-12 text-center py-5">
@@ -212,7 +201,6 @@ function mostrarTableros(filterProyectoId = null) {
             </div>
         `;
         boardsList.appendChild(col);
-        // Añadir listener al botón eliminar para evitar propagación del click
         const delBtn = col.querySelector('.del-board-btn');
         if (delBtn) {
             delBtn.addEventListener('click', (e) => {
@@ -222,7 +210,6 @@ function mostrarTableros(filterProyectoId = null) {
         }
     });
 
-    // Agregar botón para nuevo tablero
     const colAdd = document.createElement('div');
     colAdd.className = 'col-md-4';
     colAdd.innerHTML = `
@@ -234,7 +221,6 @@ function mostrarTableros(filterProyectoId = null) {
     boardsList.appendChild(colAdd);
 }
 
-// Abrir modal para crear proyecto
 function abrirModalProyecto() {
     document.getElementById('formProyecto').reset();
     document.getElementById('proyectoColor').value = '#6366f1';
@@ -244,11 +230,9 @@ function abrirModalProyecto() {
 function abrirModalTablero() {
     const form = document.getElementById('formTablero');
     if (form) form.reset();
-    // Asegurar que hay un proyecto seleccionado
     if (!currentProyectoId && proyectos.length > 0) {
         setSelectedProject(proyectos[0].id);
     }
-    // Mostrar info del proyecto actual en el modal
     const info = document.getElementById('tableroProyectoInfo');
     const hid = document.getElementById('tableroProyectoId');
     const proj = proyectos.find(p => p.id == currentProyectoId);
@@ -257,7 +241,6 @@ function abrirModalTablero() {
     tableroModal.show();
 }
 
-// Crear nuevo proyecto
 async function crearProyecto() {
     const nombre = document.getElementById('proyectoNombre').value.trim();
     const descripcion = document.getElementById('proyectoDescripcion').value.trim();
@@ -286,7 +269,7 @@ async function crearProyecto() {
         if (data.success) {
             proyectoModal.hide();
             mostrarMensaje('Proyecto creado exitosamente', 'success');
-            cargarProyectos(); // Recargar la lista desde BD
+            cargarProyectos(); 
         } else {
             mostrarError(data.message || 'Error al crear proyecto');
         }
@@ -296,10 +279,8 @@ async function crearProyecto() {
     }
 }
 
-// Crear nuevo tablero
 async function crearTablero() {
     const nombre = document.getElementById('tableroNombre').value.trim();
-    // obtener proyecto desde hidden input o variable global
     const proyectoHidden = document.getElementById('tableroProyectoId');
     const proyectoId = proyectoHidden && proyectoHidden.value ? proyectoHidden.value : currentProyectoId;
 
@@ -325,7 +306,7 @@ async function crearTablero() {
         if (data.success) {
             tableroModal.hide();
             mostrarMensaje('Tablero creado exitosamente', 'success');
-            cargarTableros(); // Recargar la lista desde BD
+            cargarTableros(); 
         } else {
             mostrarError(data.message || 'Error al crear tablero');
         }
@@ -335,16 +316,13 @@ async function crearTablero() {
     }
 }
 
-// Ir al tablero de un proyecto
 async function irATablero(proyectoId) {
-    // si nos pasan un id de tablero (cuando se hace click sobre tarjeta), navegar directamente
     if (!isNaN(proyectoId)) {
         window.location.href = `tablero.html?id=${proyectoId}`;
         return;
     }
 }
 
-// Crear tablero por defecto y navegar
 async function crearTableroYNavegar(proyectoId) {
     try {
         const response = await fetch('../api/tableros.php', {
@@ -371,7 +349,6 @@ async function crearTableroYNavegar(proyectoId) {
     }
 }
 
-// Utilidades
 function mostrarMensaje(mensaje, tipo = 'info') {
     const alerta = document.createElement('div');
     alerta.className = `alert alert-${tipo} alert-dismissible fade show position-fixed top-0 end-0 m-3`;
@@ -400,7 +377,6 @@ function filtrarPorProyecto(proyectoId) {
 
 function setSelectedProject(proyectoId) {
     currentProyectoId = proyectoId;
-    // actualizar apariencia del sidebar
     const items = document.querySelectorAll('#listaProyectos .sidebar-project');
     items.forEach(it => {
         if (it.dataset && it.dataset.proyectoId == proyectoId) {
@@ -409,7 +385,6 @@ function setSelectedProject(proyectoId) {
             it.classList.remove('active');
         }
     });
-    // actualizar info del modal de tablero si está presente
     const info = document.getElementById('tableroProyectoInfo');
     const hid = document.getElementById('tableroProyectoId');
     const proj = proyectos.find(p => p.id == proyectoId);
@@ -417,7 +392,6 @@ function setSelectedProject(proyectoId) {
     if (hid) hid.value = proj ? proj.id : '';
 }
 
-// Eliminar proyecto (con confirmación)
 async function eliminarProyecto(proyectoId, proyectoNombre = '') {
     if (!confirm(`¿Eliminar el proyecto "${proyectoNombre}"? Esta acción eliminará también sus tableros y tareas.`)) {
         return;
@@ -431,14 +405,11 @@ async function eliminarProyecto(proyectoId, proyectoNombre = '') {
 
         if (data.success) {
             mostrarMensaje('Proyecto eliminado', 'success');
-            // Si el proyecto eliminado estaba seleccionado, limpiar selección
             if (currentProyectoId == proyectoId) {
                 currentProyectoId = null;
             }
-            // Recargar proyectos y tableros
             await cargarProyectos();
             await cargarTableros();
-            // Actualizar vista de tableros (mostrará placeholder si no hay selección)
             mostrarTableros();
         } else {
             mostrarError(data.message || 'Error al eliminar proyecto');
@@ -449,7 +420,6 @@ async function eliminarProyecto(proyectoId, proyectoNombre = '') {
     }
 }
 
-// Eliminar tablero (con confirmación)
 async function eliminarTablero(tableroId, tableroNombre = '') {
     if (!confirm(`¿Eliminar el tablero "${tableroNombre}"? Esta acción eliminará también sus tareas.`)) {
         return;
@@ -463,7 +433,6 @@ async function eliminarTablero(tableroId, tableroNombre = '') {
 
         if (data.success) {
             mostrarMensaje('Tablero eliminado', 'success');
-            // Recargar lista de tableros y refrescar vista filtrada
             await cargarTableros();
             mostrarTableros(currentProyectoId);
         } else {

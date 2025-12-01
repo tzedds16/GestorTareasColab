@@ -2,19 +2,16 @@
 session_start();
 require_once '../api/config/database.php';
 
-// Si ya está logueado, redirigir a proyectos
 if (isset($_SESSION['usuario_id'])) {
     header('Location: proyectos.html?login_success=1');
     exit;
 }
 
-// Si no es POST, redirigir a auth.html
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: auth.html');
     exit;
 }
 
-// Procesar login
 $email = trim($_POST['email'] ?? '');
 $password = $_POST['password'] ?? '';
 
@@ -31,17 +28,14 @@ try {
     $usuario = $result->fetch_assoc();
     
     if ($usuario && password_verify($password, $usuario['password'])) {
-        // Login exitoso - crear sesión
         $_SESSION['usuario_id'] = $usuario['id'];
         $_SESSION['nombre'] = $usuario['nombre'];
         $_SESSION['email'] = $usuario['email'];
         $_SESSION['rol'] = $usuario['rol'];
         
-        // Redirigir a proyectos mostrando un popup de éxito
         header('Location: proyectos.html?login_success=1');
         exit;
     } else {
-        // Email no existe o contraseña incorrecta
         header('Location: auth.html?error=1&tab=login');
         exit;
     }

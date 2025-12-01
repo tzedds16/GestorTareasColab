@@ -18,7 +18,7 @@ if (!$tablero_id) {
 }
 
 try {
-    // Obtener tablero y verificar acceso
+    
     $stmt = $conn->prepare("
         SELECT t.id, t.nombre, p.id as proyecto_id, p.nombre as proyecto_nombre
         FROM tableros t

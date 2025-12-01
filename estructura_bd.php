@@ -1,8 +1,4 @@
 <?php
-/**
- * Script para ver la estructura final de la BD
- * Ejecutar: http://localhost:8888/GestorTareasColab/estructura_bd.php
- */
 
 $host = '127.0.0.1';
 $port = 8889;
@@ -10,7 +6,6 @@ $user = 'root';
 $pass = 'root';
 $database = 'gestor_tareas';
 
-// Conexión
 $conn = new mysqli($host, $user, $pass, $database, $port);
 
 if ($conn->connect_error) {
@@ -20,17 +15,14 @@ if ($conn->connect_error) {
     ]));
 }
 
-// 1. Obtener todas las tablas
 $result = $conn->query("SHOW TABLES");
 $tables = [];
 while ($row = $result->fetch_array(MYSQLI_NUM)) {
     $tables[] = $row[0];
 }
 
-// 2. Para cada tabla, obtener su estructura y registros
 $estructura = [];
 foreach ($tables as $table) {
-    // Estructura
     $result = $conn->query("DESCRIBE $table");
     $columns = [];
     while ($row = $result->fetch_assoc()) {
@@ -43,7 +35,6 @@ foreach ($tables as $table) {
         ];
     }
     
-    // Cantidad de registros
     $result = $conn->query("SELECT COUNT(*) as total FROM $table");
     $count = $result->fetch_assoc()['total'];
     

@@ -16,42 +16,34 @@ if (!isset($_SESSION['usuario_id'])) {
     <link rel="stylesheet" href="../assets/css/styles.css">
 </head>
 <body>
-    <!-- Header -->
     <nav class="navbar navbar-dark bg-black px-3 topbar">
         <span class="navbar-brand">KANBAN</span>
         <div class="user-auth-text" id="userInfo"><?php echo htmlspecialchars($_SESSION['nombre']); ?></div>
         <a href="logout.php" class="btn btn-outline-light btn-sm">Cerrar Sesión</a>
     </nav>
 
-    <!-- Contenedor para notificaciones rápidas -->
     <div id="mainAlertContainer" style="position:fixed;top:80px;right:20px;z-index:2000;"></div>
 
-    <!-- Sidebar y Contenido -->
     <div class="d-flex">
-        <!-- Sidebar -->
         <aside class="sidebar">
             <h3 class="sidebar-title">Proyectos</h3>
             <div class="sidebar-projects" id="listaProyectos">
-                <!-- Los proyectos se cargarán aquí dinámicamente -->
             </div>
                 <button class="sidebar-add-btn" onclick="abrirModalProyecto()">＋ Agregar proyecto</button>
         </aside>
 
-        <!-- Contenido Principal -->
         <main class="main-content">
             <div class="container">
                 <h1 class="project-title" id="tituloPrincipal">Mis Tableros</h1>
                 
                 <div class="boards-container">
                     <div class="row g-4" id="boardsList">
-                        <!-- Los tableros se cargarán aquí dinámicamente -->
                     </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Modal para Crear Proyecto -->
     <div class="modal fade" id="modalProyecto" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -85,7 +77,6 @@ if (!isset($_SESSION['usuario_id'])) {
         </div>
     </div>
 
-    <!-- Modal para Crear Tablero -->
     <div class="modal fade" id="modalTablero" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -117,7 +108,6 @@ if (!isset($_SESSION['usuario_id'])) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../assets/js/proyectos.js"></script>
     <script>
-        // Mostrar un popup temporal si venimos de un login exitoso
         (function() {
             const params = new URLSearchParams(window.location.search);
             if (params.get('login_success')) {
@@ -128,14 +118,12 @@ if (!isset($_SESSION['usuario_id'])) {
                 alertDiv.innerHTML = 'Inicio de sesión exitoso. ¡Bienvenido! <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
                 container.appendChild(alertDiv);
 
-                // Limpiar el parámetro de la URL para que no vuelva a mostrarse
                 if (window.history && window.history.replaceState) {
                     const url = new URL(window.location);
                     url.searchParams.delete('login_success');
                     window.history.replaceState({}, document.title, url.pathname + url.search);
                 }
 
-                // Cerrar automáticamente después de 3.5s
                 setTimeout(() => {
                     const bsAlert = new bootstrap.Alert(alertDiv);
                     try { bsAlert.close(); } catch(e){}

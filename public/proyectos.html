@@ -8,39 +8,32 @@
     <link rel="stylesheet" href="../assets/css/styles.css">
 </head>
 <body>
-    <!-- Header -->
     <nav class="navbar navbar-dark bg-black px-3 topbar">
         <span class="navbar-brand">KANBAN</span>
         <div class="user-auth-text" id="userInfo">Cargando usuario...</div>
         <a href="logout.php" class="btn btn-outline-light btn-sm">Cerrar Sesión</a>
     </nav>
 
-    <!-- Sidebar y Contenido -->
     <div class="d-flex">
-        <!-- Sidebar -->
         <aside class="sidebar">
             <h3 class="sidebar-title">Proyectos</h3>
             <div class="sidebar-projects" id="listaProyectos">
-                <!-- Los proyectos se cargarán aquí dinámicamente -->
             </div>
             <button class="sidebar-add-btn" onclick="abrirModalProyecto()">＋ Agregar proyecto</button>
         </aside>
 
-        <!-- Contenido Principal -->
         <main class="main-content">
             <div class="container">
                 <h1 class="project-title" id="tituloPrincipal">Mis Tableros</h1>
                 
                 <div class="boards-container">
                     <div class="row g-4" id="boardsList">
-                        <!-- Los tableros se cargarán aquí dinámicamente -->
                     </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Modal para Crear Proyecto -->
     <div class="modal fade" id="modalProyecto" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -74,7 +67,6 @@
         </div>
     </div>
 
-    <!-- Modal para Crear Tablero -->
     <div class="modal fade" id="modalTablero" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">

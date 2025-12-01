@@ -1,11 +1,8 @@
-// admin-panel.js - Cargar estadísticas de tareas del tablero actual
-
 let tableroId = null;
 let estadosChart = null;
 let prioridadesChart = null;
 
 window.addEventListener('DOMContentLoaded', function() {
-    // Obtener el tablero_id desde localStorage (guardado en kanban.js)
     tableroId = localStorage.getItem('tablero_id');
     
     console.log('Tablero ID desde localStorage:', tableroId);
@@ -14,19 +11,16 @@ window.addEventListener('DOMContentLoaded', function() {
         cargarEstadisticas();
     } else {
         console.error('No se encontró el tablero en localStorage');
-        // Intentar obtener tableros del usuario como alternativa
         cargarTablerosDisponibles();
     }
 });
 
 function cargarTablerosDisponibles() {
-    // Si no hay tablero_id, obtener todos los tableros del usuario
     fetch(`../api/tableros.php`)
         .then(r => r.json())
         .then(data => {
             console.log('Tableros disponibles:', data);
             if (data.success && data.tableros && data.tableros.length > 0) {
-                // Usar el primer tablero disponible
                 tableroId = data.tableros[0].id;
                 localStorage.setItem('tablero_id', tableroId);
                 console.log('Usando tablero por defecto:', tableroId);
@@ -40,7 +34,6 @@ function cargarTablerosDisponibles() {
 }
 
 function cargarEstadisticas() {
-    // Cargar tareas del tablero actual
     fetch(`../api/tareas.php?tablero_id=${tableroId}`)
         .then(r => r.json())
         .then(data => {
@@ -56,12 +49,10 @@ function cargarEstadisticas() {
                 data.tareas.forEach(tarea => {
                     console.log('Tarea estado:', tarea.estado, 'Prioridad:', tarea.prioridad);
                     
-                    // Contar por estados
                     if (tarea.estado === 'tareas') countTodo++;
                     else if (tarea.estado === 'en_proceso') countProgress++;
                     else if (tarea.estado === 'terminadas') countDone++;
                     
-                    // Contar por prioridades
                     if (tarea.prioridad === 'alta' || tarea.prioridad === 'Alta') countAlta++;
                     else if (tarea.prioridad === 'media' || tarea.prioridad === 'Media') countMedia++;
                     else if (tarea.prioridad === 'baja' || tarea.prioridad === 'Baja') countBaja++;
@@ -70,17 +61,14 @@ function cargarEstadisticas() {
                 console.log('Conteos finales - Todo:', countTodo, 'Progress:', countProgress, 'Done:', countDone);
                 console.log('Prioridades - Alta:', countAlta, 'Media:', countMedia, 'Baja:', countBaja);
                 
-                // Actualizar tarjetas de estados
                 document.getElementById('tareasTodo').textContent = countTodo;
                 document.getElementById('tareasProgress').textContent = countProgress;
                 document.getElementById('tareasDone').textContent = countDone;
                 
-                // Actualizar tarjetas de prioridades
                 document.getElementById('tareasAlta').textContent = countAlta;
                 document.getElementById('tareaMedia').textContent = countMedia;
                 document.getElementById('tareasBaja').textContent = countBaja;
                 
-                // Dibujar gráficas
                 dibujarGraficaEstados(countTodo, countProgress, countDone);
                 dibujarGraficaPrioridades(countAlta, countMedia, countBaja);
             } else {
@@ -98,7 +86,6 @@ function dibujarGraficaEstados(todo, progress, done) {
     const ctx = document.getElementById('estadosChart');
     if (!ctx) return;
     
-    // Destruir gráfica anterior si existe
     if (estadosChart) {
         estadosChart.destroy();
     }
@@ -141,7 +128,6 @@ function dibujarGraficaPrioridades(alta, media, baja) {
     const ctx = document.getElementById('prioridadesChart');
     if (!ctx) return;
     
-    // Destruir gráfica anterior si existe
     if (prioridadesChart) {
         prioridadesChart.destroy();
     }
@@ -205,6 +191,5 @@ function mostrarError() {
 }
 
 function irAlTablero() {
-    // Volver al tablero
     window.history.back();
 }
