@@ -10,7 +10,11 @@ switch ($method) {
         registrarUsuario();
         break;
     case 'GET':
-        if (isset($_GET['id'])) {
+        if (isset($_GET['action']) && $_GET['action'] === 'count') {
+            contarUsuarios();
+        } else if (isset($_GET['action']) && $_GET['action'] === 'list') {
+            listarUsuariosPlano();
+        } else if (isset($_GET['id'])) {
             obtenerUsuario($_GET['id']);
         } else {
             listarUsuarios();
@@ -26,6 +30,36 @@ switch ($method) {
         echo json_encode(['success' => false, 'message' => 'Método no permitido']);
 }
 
+function contarUsuarios() {
+    global $conn;
+    try {
+        $stmt = $conn->prepare("SELECT COUNT(*) as total FROM usuarios");
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        echo json_encode(['total' => intval($row['total'])]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['total' => 0]);
+    }
+}
+
+function listarUsuariosPlano() {
+    global $conn;
+    try {
+        $stmt = $conn->prepare("SELECT id, nombre, email FROM usuarios ORDER BY nombre");
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $usuarios = [];
+        while ($row = $result->fetch_assoc()) {
+            $usuarios[] = $row;
+        }
+        echo json_encode($usuarios);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([]);
+    }
+}
 function registrarUsuario() {
     global $conn;
     

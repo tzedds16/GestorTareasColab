@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadísticas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/admin-panel.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="kanban-bg">
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">ESTADÍSTICAS</span>
+            <div class="d-flex align-items-center">
+                <button class="btn btn-outline-light" onclick="irAlTablero()">
+                    <i class="bi bi-arrow-left"></i> Volver al Tablero
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-5 pb-5">
+        <!-- Sección de Estados -->
+        <div class="row justify-content-center mb-5">
+            <div class="col-md-10">
+                <h3 class="text-white mb-4">Resumen por Estados</h3>
+                
+                <div class="row g-4 mb-5">
+                    <div class="col-md-4">
+                        <div class="stat-card stat-card-todo">
+                            <div class="stat-value" id="tareasTodo">0</div>
+                            <div class="stat-label">Por Hacer</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card stat-card-progress">
+                            <div class="stat-value" id="tareasProgress">0</div>
+                            <div class="stat-label">En Progreso</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card stat-card-done">
+                            <div class="stat-value" id="tareasDone">0</div>
+                            <div class="stat-label">Terminadas</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gráfica de Estados -->
+                <div class="chart-container mb-5">
+                    <canvas id="estadosChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Prioridades -->
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <h3 class="text-white mb-4">Resumen por Prioridades</h3>
+                
+                <div class="row g-4 mb-5">
+                    <div class="col-md-4">
+                        <div class="stat-card stat-card-priority-alta">
+                            <div class="stat-value" id="tareasAlta">0</div>
+                            <div class="stat-label">Alta Prioridad</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card stat-card-priority-media">
+                            <div class="stat-value" id="tareaMedia">0</div>
+                            <div class="stat-label">Media Prioridad</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card stat-card-priority-baja">
+                            <div class="stat-value" id="tareasBaja">0</div>
+                            <div class="stat-label">Baja Prioridad</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gráfica de Prioridades -->
+                <div class="chart-container">
+                    <canvas id="prioridadesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/js/admin-panel.js"></script>
+</body>
+</html>

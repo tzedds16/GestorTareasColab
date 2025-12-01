@@ -436,5 +436,18 @@ function mostrarColaboradores() {
 }
 
 function irAEstadisticas() {
-    alert('Funcionalidad de estadísticas en desarrollo');
+    // Guardar el tablero_id en localStorage para que el panel de estadísticas lo use
+    // El tableroId ya está disponible como variable global
+    console.log('irAEstadisticas llamado');
+    console.log('tableroId global:', tableroId);
+    
+    if (tableroId) {
+        localStorage.setItem('tablero_id', tableroId);
+        console.log('Tablero ID guardado en localStorage:', tableroId);
+        console.log('Verificando localStorage:', localStorage.getItem('tablero_id'));
+        window.location.href = 'admin.html';
+    } else {
+        console.error('Error: tableroId es null o undefined');
+        alert('Error: No se encontró el ID del tablero');
+    }
 }
