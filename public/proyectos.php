@@ -34,13 +34,13 @@ if (!isset($_SESSION['usuario_id'])) {
             <div class="sidebar-projects" id="listaProyectos">
                 <!-- Los proyectos se cargarán aquí dinámicamente -->
             </div>
-            <button class="sidebar-add-btn" onclick="abrirModalProyecto()">＋ Agregar proyecto</button>
+                <button class="sidebar-add-btn" onclick="abrirModalProyecto()">＋ Agregar proyecto</button>
         </aside>
 
         <!-- Contenido Principal -->
         <main class="main-content">
             <div class="container">
-                <h1 class="project-title" id="tituloPrincipal">Mis Proyectos</h1>
+                <h1 class="project-title" id="tituloPrincipal">Mis Tableros</h1>
                 
                 <div class="boards-container">
                     <div class="row g-4" id="boardsList">
@@ -80,6 +80,35 @@ if (!isset($_SESSION['usuario_id'])) {
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="button" class="btn btn-primary" onclick="crearProyecto()">Crear Proyecto</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Crear Tablero -->
+    <div class="modal fade" id="modalTablero" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nuevo Tablero</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formTablero">
+                        <div class="mb-3">
+                            <label class="form-label">Nombre del Tablero *</label>
+                            <input type="text" class="form-control" id="tableroNombre" name="nombre" required maxlength="150">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Proyecto seleccionado</label>
+                            <div id="tableroProyectoInfo" class="form-control-plaintext small text-muted">Ningún proyecto seleccionado</div>
+                            <input type="hidden" id="tableroProyectoId" />
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="crearTablero()">Crear Tablero</button>
                 </div>
             </div>
         </div>

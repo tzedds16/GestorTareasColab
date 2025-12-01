@@ -19,6 +19,8 @@ try {
                 obtenerTablero($_GET['id'], $usuario_id);
             } else if (isset($_GET['proyecto_id'])) {
                 listarTablerosPorProyecto($_GET['proyecto_id'], $usuario_id);
+            } else {
+                listarTodosTablerosUsuario($usuario_id);
             }
             break;
             
@@ -94,6 +96,28 @@ function listarTablerosPorProyecto($proyecto_id, $usuario_id) {
         $tableros[] = $row;
     }
     
+    echo json_encode(['success' => true, 'tableros' => $tableros]);
+}
+
+function listarTodosTablerosUsuario($usuario_id) {
+    global $conn;
+
+    $stmt = $conn->prepare("SELECT t.*, p.nombre as proyecto_nombre, p.color as proyecto_color, COUNT(ta.id) as total_tareas
+        FROM tableros t
+        LEFT JOIN proyectos p ON t.proyecto_id = p.id
+        LEFT JOIN tareas ta ON t.id = ta.tablero_id
+        WHERE (p.usuario_id = ? OR p.id IN (SELECT proyecto_id FROM colaboradores WHERE usuario_id = ?))
+        GROUP BY t.id
+        ORDER BY p.nombre ASC, t.posicion ASC, t.fecha_creacion ASC");
+    $stmt->bind_param('ii', $usuario_id, $usuario_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $tableros = [];
+    while ($row = $result->fetch_assoc()) {
+        $tableros[] = $row;
+    }
+
     echo json_encode(['success' => true, 'tableros' => $tableros]);
 }
 
